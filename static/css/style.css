@@ -224,10 +224,13 @@ body {
   background: #ff0084;
 }
 #card--user .social-links a.blog {
-  background: #16a085;
+  background: #aa4545;
 }
 #card--user .social-links a.telegram {
   background: #0088cc;
+}
+#card--user .social-links a.feed {
+  background: #00ab6c;
 }
 #card--user .social-links a.medium {
   background: #00ab6c;
