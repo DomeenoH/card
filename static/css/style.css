@@ -235,6 +235,9 @@ body {
 #card--user .social-links a.medium {
   background: #00ab6c;
 }
+#card--user .social-links a.domain {
+  background: #5e00ab;
+}
 div#loader {
   height: 100vh;
   width: 100vw;
