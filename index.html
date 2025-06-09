@@ -28,7 +28,45 @@ https://github.com/CaiJimmy/card/
 	<meta property='og:image' content='https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif'>
 	<!-- End Opengraph -->
 
-	<link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+	<link rel="stylesheet" type="text/css" href="./static/css/style.css" />
+	<style>
+	  .card-container {
+	    perspective: 1000px;
+	  }
+	  .card {
+	    transform-style: preserve-3d;
+	    transition: all 0.5s ease;
+	  }
+	  .latest-post a {
+	    display: inline-block;
+	    margin-top: 10px;
+	    font-size: 16px;
+	    color: #333;
+	    text-decoration: none;
+	    font-weight: bold;
+	    border-bottom: 2px solid #aaa;
+	    padding-bottom: 2px;
+	    transition: all 0.3s ease;
+	  }
+
+	  .latest-post a:hover {
+	    color: #007acc;
+	    border-bottom-color: #007acc;
+	  }
+
+	  .latest-post {
+	    margin-top: 8px;
+	    margin-bottom: 20px;
+	    padding: 10px 15px;
+	    background: #f9f9f9;
+	    border-radius: 8px;
+	    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	    font-size: 14px;
+	    color: #555;
+	    text-align: center;
+	  }
+	</style>
 </head>
 
 <body>
@@ -58,7 +96,9 @@ https://github.com/CaiJimmy/card/
 					<h1 class="name">多米诺</h1>
 					<p class="bio">Vlogger・<a href="https://dicer.club/" target="_blank" style="color:#424242;">TRPG 云玩家</a>・挣扎存活中<br>讨厌胡萝卜・养了只猫・想去旅拍</p>
 				</section>
-
+				<section class="latest-post" id="latest-post">
+					最近更新：加载中...
+				</section>
 				<footer class="social-links is-hidden">
 					<a href="https://blog.dominoh.com" target="_blank" class="blog">
 						<svg class="icon icon-box">
@@ -179,6 +219,52 @@ https://github.com/CaiJimmy/card/
 			});
 		};
 	</script>
+	<script>
+	async function fetchLatestPost() {
+		try {
+			const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://blog.dominoh.com/atom.xml');
+			const data = await response.json();
+			if (data.items && data.items.length > 0) {
+				const latest = data.items[0];
+				const postDate = new Date(latest.pubDate);
+				const formattedDate = postDate.toLocaleDateString();
+				document.getElementById("latest-post").innerHTML = `最近更新：<a href="${latest.link}" target="_blank">${latest.title}</a><br><small>${formattedDate}</small>`;
+			} else {
+				document.getElementById("latest-post").innerText = "没有找到更新内容";
+			}
+		} catch (error) {
+			document.getElementById("latest-post").innerText = "加载失败";
+			console.error('RSS 加载失败', error);
+		}
+	}
+
+	fetchLatestPost();
+	</script>
+
+
+<script>
+  const card = document.querySelector('.card');
+  const container = document.querySelector('.card-container');
+
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    const xOffset = e.clientX - rect.left;
+    const yOffset = e.clientY - rect.top;
+    const xAxis = (xOffset - rect.width / 2) / 25;
+    const yAxis = (rect.height / 2 - yOffset) / 25;
+    card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+  });
+
+  container.addEventListener('mouseenter', () => {
+    card.style.transition = 'none';
+  });
+
+  container.addEventListener('mouseleave', () => {
+    card.style.transition = 'all 0.5s ease';
+    card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+  });
+</script>
+
 </body>
 
 </html>
