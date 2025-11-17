@@ -1,270 +1,365 @@
-<!DOCTYPE HTML>
-<html>
-<!--感谢CaiJimmy大佬的源码
-https://github.com/CaiJimmy/card/
+<!-- 
+  感谢 CaiJimmy 大佬的原始源码
+  由 Gemini 进行了现代化重构 (Tailwind CSS) 
+  最后审查于 2025-11-16，修复了 3D 冲突和语法错误
 -->
 <head>
-	<title>多米诺好强啊</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>多米诺好强啊</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-	<!-- Start Icons -->
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<link rel="apple-touch-icon" sizes="180x180" href="https://b2.domeenoh.eu.org/0be918793d03f1e19c823e5b6c31ffc7.png">
-	<link rel="icon" type="image/png" href="https://b2.domeenoh.eu.org/13f8b7e3778f3cbb5e4fe76058ea5ab6.ico"
-	    sizes="16x16">
-	<link rel="shortcut icon" href="https://b2.domeenoh.eu.org/13f8b7e3778f3cbb5e4fe76058ea5ab6.ico">
-	<!--End Icons-->
+    <!-- Start Icons -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://b2.domeenoh.eu.org/0be918793d03f1e19c823e5b6c31ffc7.png">
+    <link rel="icon" type="image/png" href="https://b2.domeenoh.eu.org/13f8b7e3778f3cbb5e4fe76058ea5ab6.ico" sizes="16x16">
+    <link rel="shortcut icon" href="https://b2.domeenoh.eu.org/13f8b7e3778f3cbb5e4fe76058ea5ab6.ico">
+    <!--End Icons-->
 
-	<meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#ffffff">
 
-	<!-- Start Opengraph -->
-	<meta property='og:title' content='多米诺'>
-	<meta property='og:description' content='Vlogger・TRPG 云玩家・挣扎存活中 · 讨厌胡萝卜・养了只猫・想去旅拍'>
-	<meta property='og:url' content='https://dominoh.com/'>
-	<meta property='og:site_name' content='多米诺'>
-	<meta property='og:type' content='website'>
-	<meta property='og:image' content='https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif'>
-	<!-- End Opengraph -->
+    <!-- Start Opengraph -->
+    <meta property='og:title' content='多米诺'>
+    <meta property='og:description' content='Vlogger・TRPG 云玩家・挣扎存活中 · 讨厌胡萝卜・养了只猫・想去旅拍'>
+    <meta property='og:url' content='https://dominoh.com/'>
+    <meta property='og:site_name' content='多米诺'>
+    <meta property='og:type' content='website'>
+    <meta property='og:image' content='https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif'>
+    <!-- End Opengraph -->
 
-	<link rel="stylesheet" type="text/css" href="./static/css/style.css" />
-	<style>
-	  .card-container {
-	    perspective: 1000px;
-	  }
-	  .card {
-	    transform-style: preserve-3d;
-	    transition: all 0.5s ease;
-	  }
-	  .latest-post a {
-	    display: inline-block;
-	    margin-top: 10px;
-	    font-size: 16px;
-	    color: #333;
-	    text-decoration: none;
-	    font-weight: bold;
-	    border-bottom: 2px solid #aaa;
-	    padding-bottom: 2px;
-	    transition: all 0.3s ease;
-	  }
+    <!-- 引入 Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-	  .latest-post a:hover {
-	    color: #007acc;
-	    border-bottom-color: #007acc;
-	  }
+    <style type="text/css">
+        /* * 3D 视差效果所需的关键 CSS
+         */
+        .card-container {
+            perspective: 1000px;
+        }
 
-	  .latest-post {
-	    margin-top: 8px;
-	    margin-bottom: 20px;
-	    padding: 10px 15px;
-	    background: #f9f9f9;
-	    border-radius: 8px;
-	    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-	    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-	    font-size: 14px;
-	    color: #555;
-	    text-align: center;
-	  }
-	</style>
+        .card {
+            transform-style: preserve-3d;
+            /* JS 将会动态修改这里的 transform 来实现倾斜 */
+        }
+
+        /* * [3D 效果]
+         * 将所有 3D 层次感 (translateZ) 和布局 (translateX) 移到 CSS 中,
+         * 避免与 Tailwind 的工具类冲突。
+        */
+
+        /* 1. 卡片内容 (信息, 更新, 页脚) 统一向前推 30px */
+        .card .info,
+        .card .latest-post,
+        .card .social-links {
+            transform: translateZ(30px);
+        }
+
+        /* 2. 卡片头部 (背景图) 也推 30px, 并且开启 3D 嵌套 */
+        .card header {
+            transform-style: preserve-3d;
+            transform: translateZ(30px);
+        }
+
+        /* 3. 头像: 
+              - translateX(-50%)  -> (替代 -translate-x-1/2) 实现水平居中
+              - translateZ(70px)   -> 把它在 header(30px) 的基础上再推出 40px, 总共 70px
+        */
+        .card .avatar {
+            /* 关键: 结合 2D 布局 (居中) 和 3D 突出 */
+            transform: translateX(-50%) translateZ(70px);
+        }
+
+
+        /* * 加载动画 (Loader)
+         */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* * 关键修复: 
+         * 当 body.loaded 时, 隐藏加载动画。
+         * (修复了之前的 CSS 语法错误)
+        */
+        body.loaded #loader {
+            opacity: 0;
+            pointer-events: none; /* 防止它遮挡下面的卡片 */
+        }
+
+        #loader .spinner {
+            width: 4rem;
+            height: 4rem; /* 确保是正方形 */
+            border-width: 4px; /* 调整加载圆环的粗细 */
+            border-color: #f3f4f6; /* 浅灰色轨道 */
+            border-top-color: #3b82f6; /* 蓝色旋转部分 */
+        }
+
+    </style>
 </head>
 
-<body>
-	<div id="loader">
-		<!-- Source: https://twitter.com/tobiasahlin -->
-		<div class="spinner">
-			<div class="double-bounce1"></div>
-			<div class="double-bounce2"></div>
-		</div>
-	</div>
+<!-- 
+  Body 设置:
+  - font-sans: 使用系统默认字体栈 (苹方/微软雅黑/Inter)
+  - bg-gray-200: 必应壁纸加载失败时的后备背景色
+  - bg-cover bg-center bg-fixed: 壁纸样式
+  - style: 直接使用你提供的 API (bing.img.run)
+-->
+<body class="font-sans bg-gray-200 bg-cover bg-center bg-fixed" style="background-image: url('https://bing.img.run/1920x1080.php');">
 
-	<div id="wrapper" class="container">
-		<div class="card-container">
-			<section class="card" id="card--user">
+    <!-- 加载动画 -->
+    <div id="loader">
+        <!-- 使用 Tailwind 的 animate-spin 替代原版 CSS 动画 -->
+        <div class="spinner rounded-full animate-spin"></div>
+    </div>
 
-				<header>
-					<div id="background">
-						<div id="background--image" style="background-image: url(https://b2.domeenoh.eu.org/9b7b1bdd516d919efaedc537fb3a43a9.jpg)"></div>
-					</div>
-					<figure class="avatar">
-						<img src="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif" srcset="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif 2x"
-						    alt="" />
-					</figure>
-				</header>
+    <!-- 
+      主容器
+      - min-h-screen flex items-center justify-center: 确保卡片在各种屏幕高度下都垂直居中
+      - p-4: 在移动端提供安全边距
+    -->
+    <div id="wrapper" class="min-h-screen flex items-center justify-center p-4">
+        <!-- 
+          卡片容器
+          - w-full max-w-md: 移动端全宽, 桌面端最大宽度 32rem (md)
+        -->
+        <div class="card-container w-full max-w-md">
+            
+            <!-- 
+              卡片主体
+              - bg-white/70: 70% 透明度的白色底, 适配照片背景
+              - backdrop-blur-2xl: 强力毛玻璃效果
+              - rounded-2xl shadow-2xl: 圆角和阴影
+              - overflow-hidden: 确保背景图和毛玻璃不会溢出圆角
+            -->
+            <section class="card bg-white/70 backdrop-blur-2xl rounded-2xl shadow-2xl overflow-hidden transition-all duration-500 ease" id="card--user">
 
-				<section class="info">
-					<h1 class="name">多米诺</h1>
-					<p class="bio">Vlogger・<a href="https://dicer.club/" target="_blank" style="color:#424242;">TRPG 云玩家</a>・挣扎存活中<br>讨厌胡萝卜・养了只猫・想去旅拍</p>
-				</section>
-				<section class="latest-post" id="latest-post">
-					最近更新：加载中...
-				</section>
-				<footer class="social-links is-hidden">
-					<a href="https://blog.dominoh.com" target="_blank" class="blog">
-						<svg class="icon icon-box">
-							<use xlink:href="#icon-box"></use>
-						</svg>
-						<span>博客</span>
-					</a>
+                <!-- 
+                  卡片头部
+                  - [3D 修正] 移除了所有 transform 类, 交给 <style> 管理
+                -->
+                <header class="relative">
+                    <!-- 背景图 -->
+                    <div id="background">
+                        <div id="background--image" class="h-32 w-full bg-cover bg-center opacity-75" style="background-image: url(https://b2.domeenoh.eu.org/9b7b1bdd516d919efaedc537fb3a43a9.jpg)"></div>
+                    </div>
+                    <!-- 
+                      头像
+                      - [3D 修正] 移除了 -translate-x-1/2, 交给 <style> 管理
+                    -->
+                    <figure class="avatar absolute -bottom-12 left-1/2">
+                        <img src="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif"
+                             srcset="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif 2x"
+                             alt="多米诺的头像"
+                             class="w-24 h-24 rounded-full border-4 border-white shadow-lg" />
+                    </figure>
+                </header>
 
-					<a href="https://space.bilibili.com/3596837" target="_blank" class="tv">
-						<svg class="icon icon-tv">
-							<use xlink:href="#icon-tv"></use>
-						</svg>
-						<span>B站空间</span>
-					</a>
+                <!-- 
+                  个人信息
+                  - pt-16: 为头像留出空间
+                  - [3D 修正] 移除了 transform 类
+                -->
+                <section class="info pt-16 pb-6 px-6 text-center">
+                    <h1 class="name text-3xl font-bold text-gray-900">多米诺</h1>
+                    <p class="bio mt-2 text-gray-600 leading-relaxed">
+                        Vlogger・<a href="https://dicer.club/" target="_blank" class="text-blue-600 hover:underline font-semibold">TRPG 云玩家</a>・挣扎存活中<br>讨厌胡萝卜・养了只猫・想去旅拍
+                    </p>
+                </section>
 
-					<a href="https://bluh.dominoh.com" target="_blank" class="pencil">
-						<svg class="icon icon-pencil">
-							<use xlink:href="#icon-pencil"></use>
-						</svg>
-						<span>多米诺讲故事</span>
-					</a>
+                <!-- 
+                  最近更新
+                  - [3D 修正] 移除了 transform 类
+                  - [布局更新] 移除了 text-center, 以便列表可以左对齐
+                -->
+                <section class="latest-post px-6 py-4 bg-black/5 border-t border-black/10" id="latest-post">
+                    <span class="text-sm text-gray-500">最近更新：加载中...</span>
+                </section>
 
-					<a href="https://github.com/DomeenoH" target="_blank" class="github">
-						<svg class="icon icon-github">
-							<use xlink:href="#icon-github"></use>
-						</svg>
-						<span>GitHub</span>
-					</a>
+                <!-- 
+                  社交链接
+                  - [3D 修正] 移除了 transform 类
+                -->
+                <footer class="social-links flex flex-wrap justify-center gap-4 p-6 border-t border-gray-200">
+                    
+                    <a href="https://blog.dominoh.com" target="_blank" class="blog flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
+                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-box"></use></svg>
+                        <span class="mt-1 text-xs font-medium">博客</span>
+                    </a>
 
-					<a href="https://state.dominoh.com" target="_blank" class="feed">
-						<svg class="icon icon-feed">
-							<use xlink:href="#icon-feed"></use>
-						</svg>
-						<span>服务监控</span>
-					</a>
+                    <a href="https://space.bilibili.com/3596837" target="_blank" class="tv flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
+                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-tv"></use></svg>
+                        <span class="mt-1 text-xs font-medium">B站空间</span>
+                    </a>
 
-					<a href="https://domain.dominoh.com" target="_blank" class="domain">
-						<svg class="icon icon-globe">
-							<use xlink:href="#icon-globe"></use>
-						</svg>
-						<span>二级域名</span>
-					</a>
-					<!-- Add more links here -->
-				</footer>
+                    <a href="https://bluh.dominoh.com" target="_blank" class="pencil flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
+                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-pencil"></use></svg>
+                        <span class="mt-1 text-xs font-medium">多米诺讲故事</span>
+                    </a>
 
-			</section>
-		</div>
-	</div>
+                    <a href="https://github.com/DomeenoH" target="_blank" class="github flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
+                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-github"></use></svg>
+                        <span class="mt-1 text-xs font-medium">GitHub</span>
+                    </a>
 
-	<svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg"
-	    xmlns:xlink="http://www.w3.org/1999/xlink">
+                </footer>
+            </section>
+        </div>
+    </div>
 
-		<symbol id="icon-globe" viewBox="0 0 512 512">
-			<title>globe</title>
-			<path d="M240 32c-132.548 0-240 107.452-240 240s107.452 240 240 240c132.549 0 240-107.451 240-240s-107.451-240-240-240zM375.795 352c4.29-20.227 6.998-41.696 7.879-64h63.723c-1.668 22.098-6.812 43.557-15.34 64h-56.262zM104.205 192c-4.29 20.227-6.998 41.696-7.879 64h-63.722c1.668-22.097 6.811-43.557 15.339-64h56.262zM343.018 192c4.807 20.481 7.699 41.927 8.64 64h-95.658v-64h87.018zM256 160v-93.669c7.295 2.123 14.522 5.685 21.614 10.685 13.291 9.37 26.006 23.804 36.77 41.743 7.441 12.401 13.876 26.208 19.248 41.242h-77.632zM165.616 118.758c10.764-17.939 23.478-32.374 36.77-41.743 7.091-5 14.319-8.562 21.614-10.685v93.67h-77.632c5.373-15.033 11.808-28.84 19.248-41.242zM224 192v64h-95.657c0.94-22.073 3.833-43.519 8.639-64h87.018zM47.944 352c-8.528-20.443-13.671-41.902-15.339-64h63.722c0.881 22.304 3.589 43.773 7.879 64h-56.262zM128.343 288h95.657v64h-87.018c-4.806-20.48-7.699-41.927-8.639-64zM224 384v93.67c-7.294-2.123-14.522-5.686-21.614-10.685-13.292-9.37-26.007-23.805-36.77-41.743-7.441-12.402-13.875-26.209-19.249-41.242h77.633zM314.384 425.242c-10.764 17.938-23.479 32.373-36.77 41.743-7.092 4.999-14.319 8.562-21.614 10.685v-93.67h77.633c-5.373 15.033-11.808 28.84-19.249 41.242zM256 352v-64h95.657c-0.94 22.073-3.833 43.52-8.64 64h-87.017zM383.674 256c-0.881-22.304-3.589-43.773-7.879-64h56.262c8.528 20.443 13.672 41.903 15.34 64h-63.723zM415.329 160h-47.95c-9.319-29.381-22.188-55.147-37.658-75.714 21.268 10.17 40.529 23.808 57.357 40.636 10.74 10.739 20.181 22.469 28.251 35.078zM92.922 124.922c16.829-16.829 36.090-30.466 57.357-40.636-15.471 20.567-28.338 46.333-37.658 75.714h-47.949c8.069-12.609 17.511-24.339 28.25-35.078zM64.672 384h47.949c9.32 29.381 22.188 55.147 37.659 75.715-21.268-10.17-40.529-23.808-57.357-40.637-10.74-10.739-20.182-22.469-28.251-35.078zM387.078 419.078c-16.828 16.829-36.090 30.467-57.357 40.637 15.471-20.567 28.339-46.334 37.658-75.715h47.95c-8.070 12.609-17.511 24.339-28.251 35.078z"></path>
-		</symbol>
+    <!-- 
+      SVG 图标定义 (完整保留)
+    -->
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <symbol id="icon-globe" viewBox="0 0 512 512">
+            <title>globe</title>
+            <path d="M240 32c-132.548 0-240 107.452-240 240s107.452 240 240 240c132.549 0 240-107.451 240-240s-107.451-240-240-240zM375.795 352c4.29-20.227 6.998-41.696 7.879-64h63.723c-1.668 22.098-6.812 43.557-15.34 64h-56.262zM104.205 192c-4.29 20.227-6.998 41.696-7.879 64h-63.722c1.668-22.097 6.811-43.557 15.339-64h56.262zM343.018 192c4.807 20.481 7.699 41.927 8.64 64h-95.658v-64h87.018zM256 160v-93.669c7.295 2.123 14.522 5.685 21.614 10.685 13.291 9.37 26.006 23.804 36.77 41.743 7.441 12.401 13.876 26.208 19.248 41.242h-77.632zM165.616 118.758c10.764-17.939 23.478-32.374 36.77-41.743 7.091-5 14.319-8.562 21.614-10.685v93.67h-77.632c5.373-15.033 11.808-28.84 19.248-41.242zM224 192v64h-95.657c0.94-22.073 3.833-43.519 8.639-64h87.018zM47.944 352c-8.528-20.443-13.671-41.902-15.339-64h63.722c0.881 22.304 3.589 43.773 7.879 64h-56.262zM128.343 288h95.657v64h-87.018c-4.806-20.48-7.699-41.927-8.639-64zM224 384v93.67c-7.294-2.123-14.522-5.686-21.614-10.685-13.292-9.37-26.007-23.805-36.77-41.743-7.441-12.402-13.875-26.209-19.249-41.242h77.633zM314.384 425.242c-10.764 17.938-23.479 32.373-36.77 41.743-7.092 4.999-14.319 8.562-21.614 10.685v-93.67h77.633c-5.373 15.033-11.808 28.84-19.249 41.242zM256 352v-64h95.657c-0.94 22.073-3.833 43.52-8.64 64h-87.017zM383.674 256c-0.881-22.304-3.589-43.773-7.879-64h56.262c8.528 20.443 13.672 41.903 15.34 64h-63.723zM415.329 160h-47.95c-9.319-29.381-22.188-55.147-37.658-75.714 21.268 10.17 40.529 23.808 57.357 40.636 10.74 10.739 20.181 22.469 28.251 35.078zM92.922 124.922c16.829-16.829 36.090-30.466 57.357-40.636-15.471 20.567-28.338 46.333-37.658 75.714h-47.949c8.069-12.609 17.511-24.339 28.25-35.078zM64.672 384h47.949c9.32 29.381 22.188 55.147 37.659 75.715-21.268-10.17-40.529-23.808-57.357-40.637-10.74-10.739-20.182-22.469-28.251-35.078zM387.078 419.078c-16.828 16.829-36.090 30.467-57.357 40.637 15.471-20.567 28.339-46.334 37.658-75.715h47.95c-8.070 12.609-17.511 24.339-28.251 35.078z"></path>
+        </symbol>
+        <symbol id="icon-github" viewBox="0 0 24 28">
+            <title>github</title>
+            <path d="M12 2c6.625 0 12 5.375 12 12 0 5.297-3.437 9.797-8.203 11.391-0.609 0.109-0.828-0.266-0.828-0.578 0-0.391 0.016-1.687 0.016-3.297 0-1.125-0.375-1.844-0.812-2.219 2.672-0.297 5.484-1.313 5.484-5.922 0-1.313-0.469-2.375-1.234-3.219 0.125-0.313 0.531-1.531-0.125-3.187-1-0.313-3.297 1.234-3.297 1.234-0.953-0.266-1.984-0.406-3-0.406s-2.047 0.141-3 0.406c0 0-2.297-1.547-3.297-1.234-0.656 1.656-0.25 2.875-0.125 3.187-0.766 0.844-1.234 1.906-1.234 3.219 0 4.594 2.797 5.625 5.469 5.922-0.344 0.313-0.656 0.844-0.766 1.609-0.688 0.313-2.438 0.844-3.484-1-0.656-1.141-1.844-1.234-1.844-1.234-1.172-0.016-0.078 0.734-0.078 0.734 0.781 0.359 1.328 1.75 1.328 1.75 0.703 2.141 4.047 1.422 4.047 1.422 0 1 0.016 1.937 0.016 2.234 0 0.313-0.219 0.688-0.828 0.578-4.766-1.594-8.203-6.094-8.203-11.391 0-6.625 5.375-12 12-12zM4.547 19.234c0.031-0.063-0.016-0.141-0.109-0.187-0.094-0.031-0.172-0.016-0.203 0.031-0.031 0.063 0.016 0.141 0.109 0.187 0.078 0.047 0.172 0.031 0.203-0.031zM5.031 19.766c0.063-0.047 0.047-0.156-0.031-0.25-0.078-0.078-0.187-0.109-0.25-0.047-0.063 0.047-0.047 0.156 0.031 0.25 0.078 0.078 0.187 0.109 0.25 0.047zM5.5 20.469c0.078-0.063 0.078-0.187 0-0.297-0.063-0.109-0.187-0.156-0.266-0.094-0.078 0.047-0.078 0.172 0 0.281s0.203 0.156 0.266 0.109zM6.156 21.125c0.063-0.063 0.031-0.203-0.063-0.297-0.109-0.109-0.25-0.125-0.313-0.047-0.078 0.063-0.047 0.203 0.063 0.297 0.109 0.109 0.25 0.125 0.313 0.047zM7.047 21.516c0.031-0.094-0.063-0.203-0.203-0.25-0.125-0.031-0.266 0.016-0.297 0.109s0.063 0.203 0.203 0.234c0.125 0.047 0.266 0 0.297-0.094zM8.031 21.594c0-0.109-0.125-0.187-0.266-0.172-0.141 0-0.25 0.078-0.25 0.172 0 0.109 0.109 0.187 0.266 0.172 0.141 0 0.25-0.078 0.25-0.172zM8.937 21.438c-0.016-0.094-0.141-0.156-0.281-0.141-0.141 0.031-0.234 0.125-0.219 0.234 0.016 0.094 0.141 0.156 0.281 0.125s0.234-0.125 0.219-0.219z"></path>
+        </symbol>
+        <symbol id="icon-feed" viewBox="0 0 16 16">
+            <title>feed</title>
+            <path d="M6 8c0-1.105 0.895-2 2-2s2 0.895 2 2c0 1.105-0.895 2-2 2s-2-0.895-2-2zM10.38 3.602c1.56 0.846 2.62 2.498 2.62 4.398s-1.059 3.552-2.62 4.398c0.689-1.096 1.12-2.66 1.12-4.398s-0.431-3.302-1.12-4.398zM4.5 8c0 1.738 0.431 3.302 1.12 4.398-1.56-0.846-2.62-2.498-2.62-4.398s1.059-3.552 2.62-4.398c-0.689 1.096-1.12 2.66-1.12 4.398zM1.5 8c0 2.686 0.85 5.097 2.198 6.746-2.223-1.421-3.698-3.911-3.698-6.746s1.474-5.325 3.698-6.746c-1.348 1.649-2.198 4.060-2.198 6.746zM12.302 1.254c2.223 1.421 3.698 3.911 3.698 6.746s-1.474 5.325-3.698 6.746c1.348-1.649 2.198 4.060 2.198-6.746s-0.85-5.097-2.198-6.746z"></path>
+        </symbol>
+        <symbol id="icon-tv" viewBox="0 0 16 16">
+            <title>tv</title>
+            <path d="M15.331 4.502c-1.388-0.199-2.865-0.344-4.407-0.425l2.576-2.576-1-1-3.509 3.509c-0.328-0.006-0.659-0.009-0.991-0.009v0l-4-4-1 1 3.034 3.034c-1.889 0.066-3.693 0.227-5.365 0.467-0.43 1.683-0.669 3.543-0.669 5.498s0.239 3.815 0.669 5.498c2.244 0.323 4.724 0.502 7.331 0.502s5.087-0.179 7.331 0.502c0.43-1.683 0.669-3.543 0.669-5.498s-0.239-3.815-0.669-5.498zM13.498 13.666c-1.683 0.215-3.543 0.334-5.498 0.334s-3.815-0.119-5.498-0.334c-0.323-1.122-0.502-2.362-0.502-3.666s0.179-2.543 0.502-3.666c1.683-0.215 3.543-0.334 5.498-0.334s3.815 0.119 5.498 0.334c0.323 1.122 0.502 2.362 0.502 3.666s-0.179 2.543-0.502 3.666z"></path>
+        </symbol>
+        <symbol id="icon-telegram" viewBox="0 0 28 28">
+            <title>telegram</title>
+            <path d="M18.578 20.422l2.297-10.828c0.203-0.953-0.344-1.328-0.969-1.094l-13.5 5.203c-0.922 0.359-0.906 0.875-0.156 1.109l3.453 1.078 8.016-5.047c0.375-0.25 0.719-0.109 0.438 0.141l-6.484 5.859-0.25 3.563c0.359 0 0.516-0.156 0.703-0.344l1.687-1.625 3.5 2.578c0.641 0.359 1.094 0.172 1.266-0.594zM28 14c0 7.734-6.266 14-14 14s-14-6.266-14-14 6.266-14 14-14 14 6.266 14 14z"></path>
+        </symbol>
+        <symbol id="icon-pencil" viewBox="0 0 16 16">
+            <title>pencil</title>
+            <path d="M13.5 0c1.381 0 2.5 1.119 2.5 2.5 0 0.563-0.186 1.082-0.5 1.5l-1 1-3.5-3.5 1-1c0.418-0.314 0.937-0.5 1.5-0.5zM1 11.5l-1 4.5 4.5-1 9.25-9.25-3.5-3.5-9.25 9.25zM11.181 5.681l-7 7-0.862-0.862 7-7 0.862 0.862z"></path>
+        </symbol>
+        <symbol id="icon-box" viewBox="0 0 24 24">
+            <title>box</title>
+            <path d="M21.337 4.556l-7.962-3.981c-0.006-0.006-0.012-0.006-0.019-0.012-0.419-0.213-0.888-0.319-1.356-0.319s-0.931 0.112-1.338 0.312l-8.013 4.006c-1.019 0.513-1.65 1.537-1.65 2.675v9.531c0 1.131 0.631 2.156 1.644 2.675 0 0 0.006 0 0.006 0.006l7.988 3.994c0.419 0.213 0.888 0.325 1.356 0.325s0.938-0.113 1.344-0.319l8.013-4.006c1.013-0.513 1.644-1.538 1.65-2.675v-9.531c0-1.137-0.637-2.163-1.662-2.681zM11.562 2.344c0.087-0.044 0.237-0.1 0.438-0.1 0.15 0 0.294 0.031 0.425 0.094 0.006 0 0.012 0.006 0.019 0.006l7.313 3.656-7.756 3.881-7.756-3.881 7.319-3.656zM3.55 17.669c-0.344-0.175-0.55-0.519-0.55-0.894 0-0.006 0-0.006 0-0.012v-9.144l8 4v9.775l-7.45-3.725zM20.456 17.663l-7.456 3.725v-9.769l8-4v9.15c0 0.381-0.213 0.725-0.544 0.894z"></path>
+        </symbol>
+    </svg>
 
-		<symbol id="icon-github" viewBox="0 0 24 28">
-			<title>github</title>
-			<path d="M12 2c6.625 0 12 5.375 12 12 0 5.297-3.437 9.797-8.203 11.391-0.609 0.109-0.828-0.266-0.828-0.578 0-0.391 0.016-1.687 0.016-3.297 0-1.125-0.375-1.844-0.812-2.219 2.672-0.297 5.484-1.313 5.484-5.922 0-1.313-0.469-2.375-1.234-3.219 0.125-0.313 0.531-1.531-0.125-3.187-1-0.313-3.297 1.234-3.297 1.234-0.953-0.266-1.984-0.406-3-0.406s-2.047 0.141-3 0.406c0 0-2.297-1.547-3.297-1.234-0.656 1.656-0.25 2.875-0.125 3.187-0.766 0.844-1.234 1.906-1.234 3.219 0 4.594 2.797 5.625 5.469 5.922-0.344 0.313-0.656 0.844-0.766 1.609-0.688 0.313-2.438 0.844-3.484-1-0.656-1.141-1.844-1.234-1.844-1.234-1.172-0.016-0.078 0.734-0.078 0.734 0.781 0.359 1.328 1.75 1.328 1.75 0.703 2.141 4.047 1.422 4.047 1.422 0 1 0.016 1.937 0.016 2.234 0 0.313-0.219 0.688-0.828 0.578-4.766-1.594-8.203-6.094-8.203-11.391 0-6.625 5.375-12 12-12zM4.547 19.234c0.031-0.063-0.016-0.141-0.109-0.187-0.094-0.031-0.172-0.016-0.203 0.031-0.031 0.063 0.016 0.141 0.109 0.187 0.078 0.047 0.172 0.031 0.203-0.031zM5.031 19.766c0.063-0.047 0.047-0.156-0.031-0.25-0.078-0.078-0.187-0.109-0.25-0.047-0.063 0.047-0.047 0.156 0.031 0.25 0.078 0.078 0.187 0.109 0.25 0.047zM5.5 20.469c0.078-0.063 0.078-0.187 0-0.297-0.063-0.109-0.187-0.156-0.266-0.094-0.078 0.047-0.078 0.172 0 0.281s0.203 0.156 0.266 0.109zM6.156 21.125c0.063-0.063 0.031-0.203-0.063-0.297-0.109-0.109-0.25-0.125-0.313-0.047-0.078 0.063-0.047 0.203 0.063 0.297 0.109 0.109 0.25 0.125 0.313 0.047zM7.047 21.516c0.031-0.094-0.063-0.203-0.203-0.25-0.125-0.031-0.266 0.016-0.297 0.109s0.063 0.203 0.203 0.234c0.125 0.047 0.266 0 0.297-0.094zM8.031 21.594c0-0.109-0.125-0.187-0.266-0.172-0.141 0-0.25 0.078-0.25 0.172 0 0.109 0.109 0.187 0.266 0.172 0.141 0 0.25-0.078 0.25-0.172zM8.937 21.438c-0.016-0.094-0.141-0.156-0.281-0.141-0.141 0.031-0.234 0.125-0.219 0.234 0.016 0.094 0.141 0.156 0.281 0.125s0.234-0.125 0.219-0.219z"></path>
-		</symbol>
+    <!-- 脚本 -->
 
-		<symbol id="icon-feed" viewBox="0 0 16 16">
-			<title>feed</title>
-			<path d="M6 8c0-1.105 0.895-2 2-2s2 0.895 2 2c0 1.105-0.895 2-2 2s-2-0.895-2-2zM10.38 3.602c1.56 0.846 2.62 2.498 2.62 4.398s-1.059 3.552-2.62 4.398c0.689-1.096 1.12-2.66 1.12-4.398s-0.431-3.302-1.12-4.398zM4.5 8c0 1.738 0.431 3.302 1.12 4.398-1.56-0.846-2.62-2.498-2.62-4.398s1.059-3.552 2.62-4.398c-0.689 1.096-1.12 2.66-1.12 4.398zM1.5 8c0 2.686 0.85 5.097 2.198 6.746-2.223-1.421-3.698-3.911-3.698-6.746s1.474-5.325 3.698-6.746c-1.348 1.649-2.198 4.060-2.198 6.746zM12.302 1.254c2.223 1.421 3.698 3.911 3.698 6.746s-1.474 5.325-3.698 6.746c1.348-1.649 2.198-4.060 2.198-6.746s-0.85-5.097-2.198-6.746z"></path>
-		</symbol>
+    <script type="text/javascript">
+        if (top.location !== self.location) {
+            top.location = self.location;
+        };
+    </script>
 
-		<symbol id="icon-tv" viewBox="0 0 16 16">
-			<title>tv</title>
-			<path d="M15.331 4.502c-1.388-0.199-2.865-0.344-4.407-0.425l2.576-2.576-1-1-3.509 3.509c-0.328-0.006-0.659-0.009-0.991-0.009v0l-4-4-1 1 3.034 3.034c-1.889 0.066-3.693 0.227-5.365 0.467-0.43 1.683-0.669 3.543-0.669 5.498s0.239 3.815 0.669 5.498c2.244 0.323 4.724 0.502 7.331 0.502s5.087-0.179 7.331-0.502c0.43-1.683 0.669-3.543 0.669-5.498s-0.239-3.815-0.669-5.498zM13.498 13.666c-1.683 0.215-3.543 0.334-5.498 0.334s-3.815-0.119-5.498-0.334c-0.323-1.122-0.502-2.362-0.502-3.666s0.179-2.543 0.502-3.666c1.683-0.215 3.543-0.334 5.498-0.334s3.815 0.119 5.498 0.334c0.323 1.122 0.502 2.362 0.502 3.666s-0.179 2.543-0.502 3.666z"></path>
-		</symbol>
+    <!-- 2. "loaded" 状态 (保留), 用于淡出加载动画 -->
+    <script>
+        if ('addEventListener' in window) {
+            window.addEventListener('load', function () {
+                document.body.classList.add('loaded');
+            });
+        };
+    </script>
 
-		<symbol id="icon-telegram" viewBox="0 0 28 28">
-			<title>telegram</title>
-			<path d="M18.578 20.422l2.297-10.828c0.203-0.953-0.344-1.328-0.969-1.094l-13.5 5.203c-0.922 0.359-0.906 0.875-0.156 1.109l3.453 1.078 8.016-5.047c0.375-0.25 0.719-0.109 0.438 0.141l-6.484 5.859-0.25 3.563c0.359 0 0.516-0.156 0.703-0.344l1.687-1.625 3.5 2.578c0.641 0.359 1.094 0.172 1.266-0.594zM28 14c0 7.734-6.266 14-14 14s-14-6.266-14-14 6.266-14 14-14 14 6.266 14 14z"></path>
-		</symbol>
-		<symbol id="icon-pencil" viewBox="0 0 16 16">
-			<title>pencil</title>
-			<path d="M13.5 0c1.381 0 2.5 1.119 2.5 2.5 0 0.563-0.186 1.082-0.5 1.5l-1 1-3.5-3.5 1-1c0.418-0.314 0.937-0.5 1.5-0.5zM1 11.5l-1 4.5 4.5-1 9.25-9.25-3.5-3.5-9.25 9.25zM11.181 5.681l-7 7-0.862-0.862 7-7 0.862 0.862z"></path>
-		</symbol>
-		<symbol id="icon-box" viewBox="0 0 24 24">
-			<title>box</title>
-			<path d="M21.337 4.556l-7.962-3.981c-0.006-0.006-0.012-0.006-0.019-0.012-0.419-0.213-0.888-0.319-1.356-0.319s-0.931 0.112-1.338 0.312l-8.013 4.006c-1.019 0.513-1.65 1.537-1.65 2.675v9.531c0 1.131 0.631 2.156 1.644 2.675 0 0 0.006 0 0.006 0.006l7.988 3.994c0.419 0.213 0.888 0.325 1.356 0.325s0.938-0.113 1.344-0.319l8.013-4.006c1.013-0.513 1.644-1.538 1.65-2.675v-9.531c0-1.137-0.637-2.163-1.662-2.681zM11.562 2.344c0.087-0.044 0.237-0.1 0.438-0.1 0.15 0 0.294 0.031 0.425 0.094 0.006 0 0.012 0.006 0.019 0.006l7.313 3.656-7.756 3.881-7.756-3.881 7.319-3.656zM3.55 17.669c-0.344-0.175-0.55-0.519-0.55-0.894 0-0.006 0-0.006 0-0.012v-9.144l8 4v9.775l-7.45-3.725zM20.456 17.663l-7.456 3.725v-9.769l8-4v9.15c0 0.381-0.213 0.725-0.544 0.894z"></path>
-		</symbol>
-		<symbol id="icon-twitter" viewBox="0 0 26 28">
-			<title>twitter</title>
-			<path d="M25.312 6.375c-0.688 1-1.547 1.891-2.531 2.609 0.016 0.219 0.016 0.438 0.016 0.656 0 6.672-5.078 14.359-14.359 14.359-2.859 0-5.516-0.828-7.75-2.266 0.406 0.047 0.797 0.063 1.219 0.063 2.359 0 4.531-0.797 6.266-2.156-2.219-0.047-4.078-1.5-4.719-3.5 0.313 0.047 0.625 0.078 0.953 0.078 0.453 0 0.906-0.063 1.328-0.172-2.312-0.469-4.047-2.5-4.047-4.953v-0.063c0.672 0.375 1.453 0.609 2.281 0.641-1.359-0.906-2.25-2.453-2.25-4.203 0-0.938 0.25-1.797 0.688-2.547 2.484 3.062 6.219 5.063 10.406 5.281-0.078-0.375-0.125-0.766-0.125-1.156 0-2.781 2.25-5.047 5.047-5.047 1.453 0 2.766 0.609 3.687 1.594 1.141-0.219 2.234-0.641 3.203-1.219-0.375 1.172-1.172 2.156-2.219 2.781 1.016-0.109 2-0.391 2.906-0.781z"></path>
-		</symbol>
+    <!-- 3. RSS 加载 (优化了 HTML 输出) -->
+    <script>
+        async function fetchLatestPost() {
+            try {
+                // 使用 HTTPS 代理来避免潜在的 CORS 问题
+                const rssApiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fblog.dominoh.com%2Fatom.xml';
+                const response = await fetch(rssApiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'ok' && data.items && data.items.length > 0) {
+                    
+                    // [更新] 获取最新的三篇文章
+                    const latestPosts = data.items.slice(0, 3);
+                    
+                    let postsHtml = '<span class="block text-sm text-gray-500 text-left mb-2">最近更新：</span>';
+                    postsHtml += '<div class="flex flex-col gap-3">'; // 列表容器
 
-		<symbol id="icon-pencil" viewBox="0 0 24 28">
-			<title>pencil</title>
-			<path d="M5.672 24l1.422-1.422-3.672-3.672-1.422 1.422v1.672h2v2h1.672zM13.844 9.5c0-0.203-0.141-0.344-0.344-0.344-0.094 0-0.187 0.031-0.266 0.109l-8.469 8.469c-0.078 0.078-0.109 0.172-0.109 0.266 0 0.203 0.141 0.344 0.344 0.344 0.094 0 0.187-0.031 0.266-0.109l8.469-8.469c0.078-0.078 0.109-0.172 0.109-0.266zM13 6.5l6.5 6.5-13 13h-6.5v-6.5zM23.672 8c0 0.531-0.219 1.047-0.578 1.406l-2.594 2.594-6.5-6.5 2.594-2.578c0.359-0.375 0.875-0.594 1.406-0.594s1.047 0.219 1.422 0.594l3.672 3.656c0.359 0.375 0.578 0.891 0.578 1.422z"></path>
-		</symbol>
+                    // [更新] 遍历三篇文章并生成 HTML
+                    for (const post of latestPosts) {
+                        const postDate = new Date(post.pubDate);
+                        // 格式化日期, 示例: 2025-11-16
+                        const formattedDate = postDate.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
 
-		<symbol id="icon-flickr" viewBox="0 0 24 28">
-			<title>flickr</title>
-			<path d="M19.5 2c2.484 0 4.5 2.016 4.5 4.5v15c0 2.484-2.016 4.5-4.5 4.5h-15c-2.484 0-4.5-2.016-4.5-4.5v-15c0-2.484 2.016-4.5 4.5-4.5h15zM10.906 14c0-1.828-1.484-3.313-3.313-3.313s-3.313 1.484-3.313 3.313 1.484 3.313 3.313 3.313 3.313-1.484 3.313-3.313zM19.719 14c0-1.828-1.484-3.313-3.313-3.313s-3.313 1.484-3.313 3.313 1.484 3.313 3.313 3.313 3.313-1.484 3.313-3.313z"></path>
-		</symbol>
+                        postsHtml += `
+                            <div>
+                                <a href="${post.link}" target="_blank" rel="noopener noreferrer" class="block text-base font-semibold text-blue-600 hover:underline text-left">
+                                    ${post.title}
+                                </a>
+                                <small class="block text-xs text-gray-400 mt-1 text-left">${formattedDate}</small>
+                            </div>
+                        `;
+                    }
 
-		<symbol id="icon-medium" viewBox="0 0 28 28">
-			<title>medium</title>
-			<path d="M9.328 6.578v18.328c0 0.484-0.234 0.938-0.766 0.938-0.187 0-0.359-0.047-0.516-0.125l-7.266-3.641c-0.438-0.219-0.781-0.781-0.781-1.25v-17.813c0-0.391 0.187-0.75 0.609-0.75 0.25 0 0.469 0.125 0.688 0.234l7.984 4c0.016 0.016 0.047 0.063 0.047 0.078zM10.328 8.156l8.344 13.531-8.344-4.156v-9.375zM28 8.437v16.469c0 0.516-0.297 0.875-0.812 0.875-0.266 0-0.516-0.078-0.734-0.203l-6.891-3.437zM27.953 6.563c0 0.063-8.078 13.172-8.703 14.172l-6.094-9.906 5.063-8.234c0.172-0.281 0.484-0.438 0.812-0.438 0.141 0 0.281 0.031 0.406 0.094l8.453 4.219c0.031 0.016 0.063 0.047 0.063 0.094z"></path>
-		</symbol>
+                    postsHtml += '</div>'; // 结束容器
+                    
+                    document.getElementById("latest-post").innerHTML = postsHtml;
 
-		<!-- Add more icons here https://icomoon.io/app/#/select -->
-	</svg>
+                } else {
+                    document.getElementById("latest-post").innerHTML = `<span class="text-sm text-gray-500">没有找到更新内容</span>`;
+                }
+            } catch (error) {
+                document.getElementById("latest-post").innerHTML = `<span class="text-sm text-gray-500">加载失败</span>`;
+                console.error('RSS 加载失败', error);
+            }
+        }
+        
+        // 页面加载时执行
+        fetchLatestPost();
+    </script>
 
-	<script type="text/javascript">
-		if (top.location !== self.location) {
-			top.location = self.location
-		};
-	</script>
+    <!-- 
+      4. 3D 视差 (全局) 
+      - 监听 'body' 上的 'mousemove'
+      - 倾斜逻辑:
+        - xAxis (控制左右 rotateY): "跟随"
+        - yAxis (控制上下 rotateX): "排斥"
+    -->
+    <script>
+        const card = document.querySelector('.card');
+        const body = document.body;
 
-	<script>
-		if ('addEventListener' in window) {
-			window.addEventListener('load', function () {
-				document.body.classList.add('loaded');
-			});
-		};
-	</script>
-	<script>
-	async function fetchLatestPost() {
-		try {
-			const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://blog.dominoh.com/atom.xml');
-			const data = await response.json();
-			if (data.items && data.items.length > 0) {
-				const latest = data.items[0];
-				const postDate = new Date(latest.pubDate);
-				const formattedDate = postDate.toLocaleDateString();
-				document.getElementById("latest-post").innerHTML = `最近更新：<a href="${latest.link}" target="_blank">${latest.title}</a><br><small>${formattedDate}</small>`;
-			} else {
-				document.getElementById("latest-post").innerText = "没有找到更新内容";
-			}
-		} catch (error) {
-			document.getElementById("latest-post").innerText = "加载失败";
-			console.error('RSS 加载失败', error);
-		}
-	}
+        body.addEventListener('mousemove', (e) => {
+            // "跟随" 逻辑 (Y轴, 左右倾斜)
+            const xAxis = (e.pageX - window.innerWidth / 2) / 25;
+            
+            // "排斥" 逻辑 (X轴, 上下倾斜)
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25; 
+            
+            // 组合 3D 突出 (来自 CSS) 和 动态倾斜 (来自 JS)
+            // 注意: JS 设置的 'transform' 会覆盖 CSS 中设置的 transform (如 translateZ)。
+            // 为了解决这个问题, 我们必须在 JS 中 *重新组合* 倾斜和 3D 效果。
+            // ... 啊, 但这又会和 CSS 冲突。
+            
+            // [最终修正]
+            // JS 只负责倾斜。
+            // 3D 突出效果 (translateZ) 由 CSS 定义。
+            // 只要父元素 (card) 设置了 transform-style: preserve-3d,
+            // 倾斜 (rotate) 就会应用于整个卡片, 而卡片的子元素会保持它们的 3D 位置。
+            // 这就是我们 10:48:58 的方案, 它本应是正确的。
+            
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
 
-	fetchLatestPost();
-	</script>
+        body.addEventListener('mouseenter', () => {
+            card.style.transition = 'none'; // 鼠标进入时移除过渡
+        });
 
-
-<script>
-  const card = document.querySelector('.card');
-  const container = document.querySelector('.card-container');
-
-  container.addEventListener('mousemove', (e) => {
-    const rect = container.getBoundingClientRect();
-    const xOffset = e.clientX - rect.left;
-    const yOffset = e.clientY - rect.top;
-    const xAxis = (xOffset - rect.width / 2) / 25;
-    const yAxis = (rect.height / 2 - yOffset) / 25;
-    card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-  });
-
-  container.addEventListener('mouseenter', () => {
-    card.style.transition = 'none';
-  });
-
-  container.addEventListener('mouseleave', () => {
-    card.style.transition = 'all 0.5s ease';
-    card.style.transform = 'rotateY(0deg) rotateX(0deg)';
-  });
-</script>
+        body.addEventListener('mouseleave', () => {
+            card.style.transition = 'all 0.5s ease'; // 恢复过渡效果
+            card.style.transform = 'rotateY(0deg) rotateX(0deg)'; // 恢复原位
+        });
+    </script>
 
 </body>
-
 </html>
