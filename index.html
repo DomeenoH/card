@@ -166,6 +166,52 @@
             line-height: 1.6;
         }
 
+        /* 桌面端方形布局：双列卡片 */
+        @media (min-width: 1024px) {
+            #wrapper {
+                align-items: center;
+            }
+
+            .card-container {
+                max-width: 960px;
+            }
+
+            .card {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-rows: auto 1fr auto;
+                min-height: 620px;
+            }
+
+            .card header {
+                grid-column: 1 / -1;
+            }
+
+            .card .info {
+                grid-column: 1 / 2;
+                grid-row: 2 / 3;
+                align-self: start;
+                text-align: left;
+                padding-right: 2rem;
+            }
+
+            .card .latest-post {
+                grid-column: 2 / 3;
+                grid-row: 2 / 3;
+                border-top: none;
+                border-left: 1px solid rgba(0, 0, 0, 0.08);
+                height: 100%;
+            }
+
+            .card .social-links {
+                grid-column: 1 / -1;
+            }
+
+            .card .avatar {
+                left: 25%;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .post-card,
             .post-preview {
@@ -521,8 +567,9 @@
         const card = document.querySelector('.card');
         const body = document.body;
         const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
-        if (!reduceMotion) {
+        if (!reduceMotion && !isMobile) {
             body.addEventListener('mousemove', (e) => {
                 // "跟随" 逻辑 (Y轴, 左右倾斜)
                 const xAxis = (e.pageX - window.innerWidth / 2) / 25;
@@ -553,7 +600,7 @@
                 card.style.transition = 'all 0.5s ease'; // 恢复过渡效果
                 card.style.transform = 'rotateY(0deg) rotateX(0deg)'; // 恢复原位
             });
-        } else {
+        } else if (card) {
             card.style.transform = 'none';
         }
     </script>
