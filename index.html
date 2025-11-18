@@ -66,7 +66,8 @@
         */
         .card .avatar {
             /* 关键: 结合 2D 布局 (居中) 和 3D 突出 */
-            transform: translateX(-50%) translateZ(70px);
+            transform: translateX(-50%) translateZ(110px) scale(1.08);
+            filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.28));
         }
 
 
@@ -224,6 +225,11 @@
             }
         }
 
+        /* 减少 3D 倾斜导致的横向滚动 */
+        body {
+            overflow-x: hidden;
+        }
+
     </style>
 </head>
 
@@ -276,11 +282,11 @@
                       头像
                       - [3D 修正] 移除了 -translate-x-1/2, 交给 <style> 管理
                     -->
-                    <figure class="avatar absolute -bottom-12 left-1/2">
+                    <figure class="avatar absolute -bottom-14 left-1/2">
                         <img src="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif"
                              srcset="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif 2x"
                              alt="多米诺的头像"
-                             class="w-24 h-24 rounded-full border-4 border-white shadow-lg" />
+                             class="w-28 h-28 rounded-full border-4 border-white shadow-2xl" />
                     </figure>
                 </header>
 
@@ -289,11 +295,34 @@
                   - pt-16: 为头像留出空间
                   - [3D 修正] 移除了 transform 类
                 -->
-                <section class="info pt-16 pb-6 px-6 text-center">
+                <section class="info pt-20 pb-6 px-6 text-center lg:text-left">
                     <h1 class="name text-3xl font-bold text-gray-900">多米诺</h1>
                     <p class="bio mt-2 text-gray-600 leading-relaxed">
                         Vlogger・<a href="https://dicer.club/" target="_blank" class="text-blue-600 hover:underline font-semibold">TRPG 云玩家</a>・挣扎存活中<br>讨厌胡萝卜・养了只猫・想去旅拍
                     </p>
+                    <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                        <div class="flex items-start gap-3 p-3 rounded-xl bg-white/70 border border-black/5 shadow-sm">
+                            <span class="text-lg">📹</span>
+                            <div>
+                                <p class="font-semibold text-gray-900">正在拍</p>
+                                <p class="text-gray-600 leading-relaxed">旅拍素材收集中，剪辑排期中</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 rounded-xl bg-white/70 border border-black/5 shadow-sm">
+                            <span class="text-lg">🧭</span>
+                            <div>
+                                <p class="font-semibold text-gray-900">近期计划</p>
+                                <p class="text-gray-600 leading-relaxed">长文整理 + 轻量 vlog 交替更新</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 rounded-xl bg-white/70 border border-black/5 shadow-sm sm:col-span-2">
+                            <span class="text-lg">✨</span>
+                            <div>
+                                <p class="font-semibold text-gray-900">偏好</p>
+                                <p class="text-gray-600 leading-relaxed">偏爱自然光、城市街拍和猫猫镜头，正在尝试更多 TRPG 录制</p>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- 
@@ -408,6 +437,8 @@
         const previewBox = document.getElementById('post-preview');
         let hidePreviewTimer;
 
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
         const stripHtml = (html = '') => {
             const temp = document.createElement('div');
             temp.innerHTML = html;
@@ -428,6 +459,28 @@
             previewBox.classList.remove('visible');
             clearTimeout(hidePreviewTimer);
             hidePreviewTimer = setTimeout(() => previewBox.classList.add('hidden'), 160);
+        }
+
+        function positionPreview(card, event) {
+            if (!previewBox) return;
+
+            const padding = 16;
+            const rect = card.getBoundingClientRect();
+            const boxRect = previewBox.getBoundingClientRect();
+            const boxWidth = boxRect.width || 260;
+            const boxHeight = boxRect.height || 200;
+
+            let left = event?.clientX ?? rect.left + rect.width / 2;
+            left = clamp(left, padding + boxWidth / 2, window.innerWidth - padding - boxWidth / 2);
+
+            let top = rect.bottom + 12;
+            if (top + boxHeight + padding > window.innerHeight) {
+                top = rect.top - boxHeight - 12;
+            }
+            top = clamp(top, padding, window.innerHeight - padding - boxHeight);
+
+            previewBox.style.top = `${top}px`;
+            previewBox.style.left = `${left}px`;
         }
 
         async function fetchLatestPost() {
@@ -496,23 +549,18 @@
                     postCards.forEach((card) => {
                         const previewText = card.getAttribute('data-preview');
 
-                        card.addEventListener('mouseenter', () => {
+                        card.addEventListener('mouseenter', (event) => {
                             if (!previewBox || !previewText) return;
 
                             clearTimeout(hidePreviewTimer);
 
-                            const rect = card.getBoundingClientRect();
                             previewBox.innerHTML = `
                                 <div class="text-xs font-semibold text-sky-600 mb-1">文章预览</div>
                                 <div class="preview-body text-sm text-gray-800">${previewText}</div>
                             `;
 
-                            const top = rect.bottom + 10;
-                            const left = rect.left + rect.width / 2;
-
-                            previewBox.style.top = `${top}px`;
-                            previewBox.style.left = `${left}px`;
                             previewBox.classList.remove('hidden');
+                            positionPreview(card, event);
 
                             if (!prefersReducedMotion) {
                                 requestAnimationFrame(() => previewBox.classList.add('visible'));
@@ -521,6 +569,7 @@
                             }
                         });
 
+                        card.addEventListener('mousemove', (event) => positionPreview(card, event));
                         card.addEventListener('mouseleave', hidePreview);
                     });
 
@@ -571,24 +620,17 @@
         const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
         if (!reduceMotion && !isMobile) {
+            const maxTilt = 8;
+
             body.addEventListener('mousemove', (e) => {
                 // "跟随" 逻辑 (Y轴, 左右倾斜)
-                const xAxis = (e.pageX - window.innerWidth / 2) / 25;
+                const rawX = (e.pageX - window.innerWidth / 2) / 50;
 
                 // "排斥" 逻辑 (X轴, 上下倾斜)
-                const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+                const rawY = (window.innerHeight / 2 - e.pageY) / 50;
 
-                // 组合 3D 突出 (来自 CSS) 和 动态倾斜 (来自 JS)
-                // 注意: JS 设置的 'transform' 会覆盖 CSS 中设置的 transform (如 translateZ)。
-                // 为了解决这个问题, 我们必须在 JS 中 *重新组合* 倾斜和 3D 效果。
-                // ... 啊, 但这又会和 CSS 冲突。
-
-                // [最终修正]
-                // JS 只负责倾斜。
-                // 3D 突出效果 (translateZ) 由 CSS 定义。
-                // 只要父元素 (card) 设置了 transform-style: preserve-3d,
-                // 倾斜 (rotate) 就会应用于整个卡片, 而卡片的子元素会保持它们的 3D 位置。
-                // 这就是我们 10:48:58 的方案, 它本应是正确的。
+                const xAxis = clamp(rawX, -maxTilt, maxTilt);
+                const yAxis = clamp(rawY, -maxTilt, maxTilt);
 
                 card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
             });
