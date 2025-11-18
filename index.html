@@ -173,7 +173,7 @@
             }
 
             .card-container {
-                max-width: 960px;
+                max-width: 1180px;
             }
 
             .card {
@@ -181,6 +181,7 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 grid-template-rows: auto 1fr auto;
                 min-height: 620px;
+                column-gap: 1.5rem;
             }
 
             .card header {
@@ -251,7 +252,7 @@
           卡片容器
           - w-full max-w-md: 移动端全宽, 桌面端最大宽度 32rem (md)
         -->
-        <div class="card-container w-full max-w-md">
+        <div class="card-container w-full max-w-md lg:max-w-5xl xl:max-w-6xl">
             
             <!-- 
               卡片主体
@@ -269,7 +270,7 @@
                 <header class="relative">
                     <!-- 背景图 -->
                     <div id="background">
-                        <div id="background--image" class="h-32 w-full bg-cover bg-center opacity-75" style="background-image: url(https://b2.domeenoh.eu.org/9b7b1bdd516d919efaedc537fb3a43a9.jpg)"></div>
+                    <div id="background--image" class="h-40 md:h-48 w-full bg-cover bg-center opacity-75" style="background-image: url(https://b2.domeenoh.eu.org/9b7b1bdd516d919efaedc537fb3a43a9.jpg)"></div>
                     </div>
                     <!-- 
                       头像
