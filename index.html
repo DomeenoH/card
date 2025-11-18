@@ -46,7 +46,7 @@
         /* === Core Styles === */
         :root {
             --bg-color: #eef2f5;
-            /* [FIX] 降低不透明度以增强毛玻璃效果 (0.9 -> 0.6) */
+            /* [FIX] 保持 0.6 以维持通透感 */
             --card-bg: rgba(255, 255, 255, 0.6); 
             --text-main: #0f172a;
             --text-sub: #334155;
@@ -68,7 +68,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* [NEW] 全局噪点纹理，增加质感 */
+        /* 全局噪点纹理 */
         .bg-noise {
             position: relative;
         }
@@ -121,7 +121,7 @@
         #ai-modal {
             position: fixed; bottom: 90px; right: 20px;
             width: 320px; height: 400px;
-            background: rgba(15, 23, 42, 0.85); /* 稍微透明一点 */
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
@@ -147,11 +147,9 @@
         
         .card {
             background: var(--card-bg); 
-            /* [FIX] 增强模糊半径 */
             backdrop-filter: blur(40px) saturate(180%); 
             -webkit-backdrop-filter: blur(40px) saturate(180%);
             border-radius: 24px; 
-            /* [FIX] 加深阴影，增强层次感 */
             box-shadow: 0 30px 60px -12px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.4);
             border: 1px solid rgba(255,255,255,0.2);
             display: flex; 
@@ -174,7 +172,7 @@
         
         .col-right { 
             flex: 1; padding: 30px; display: flex; flex-direction: column; 
-            background: rgba(255,255,255,0.1); /* 右侧稍微再透一点 */
+            background: rgba(255,255,255,0.1); 
             height: auto; min-height: 0;
         }
         @media (max-width: 768px) { .col-right { height: auto; min-height: auto; } }
@@ -269,7 +267,7 @@
         
         .blog-item { 
             display: block; padding: 12px; margin-bottom: 8px; 
-            background: rgba(255,255,255,0.4); /* 增加通透感 */
+            background: rgba(255,255,255,0.4); 
             border-radius: 8px; text-decoration: none; color: inherit; 
             border: 1px solid transparent; transition: all 0.2s; 
         }
@@ -384,8 +382,8 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // IP Geolocation
-        fetch('https://ipapi.co/json/')
+        // IP Geolocation (Switched to geojs.io for better stability)
+        fetch('https://get.geojs.io/v1/ip/geo.json')
             .then(res => res.json())
             .then(data => {
                 if (data.city && data.country_code) {
@@ -395,7 +393,7 @@
                 }
             })
             .catch(err => {
-                console.warn('IP Geo failed:', err);
+                // console.warn('IP Geo failed:', err); // Silent fail
                 try {
                     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     if (timeZone) {
@@ -483,27 +481,45 @@
         sendBtn.addEventListener('click', () => { const text = chatInput.value.trim(); if(text) askGemini(text); });
         chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendBtn.click(); });
 
-        // Blog
+        // Blog Logic with Robust CORS Handling
         let cachedBlogData = [];
+        
         async function fetchBlog() {
             const container = document.getElementById('blog-list');
+            const feedUrl = 'https://blog.dominoh.com/atom.xml';
+            
+            // Mock Data for Offline/Fallback
             const MOCK_DATA = [
                 { title: "Project: TailFrame Studio New Era", date: "2025/05/20", desc: "Launching our new visual identity. 尾巴帧工作室新篇章开启。" },
                 { title: "TRPG Log: The Silent House", date: "2025/05/18", desc: "An unexpected crit failure led to total chaos. 昨晚的跑团记录。" },
                 { title: "Gear: Sony A7S III Review", date: "2025/05/10", desc: "Is it still the king of low light in 2025? 微光之王评测。" },
                 { title: "Vlog: Rainy Tokyo Nights", date: "2025/05/01", desc: "Walking through Shinjuku with a 35mm lens. 东京雨夜漫步。" }
             ];
-            try {
-                const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fblog.dominoh.com%2Fatom.xml');
-                if(!res.ok) throw new Error('Network');
-                const data = await res.json();
-                cachedBlogData = data.items;
-                renderList(data.items, container);
-            } catch(e) {
-                console.log("Offline mode");
-                container.innerHTML = '<div style="font-size:0.7rem; color:#64748b; margin-bottom:10px; text-align:center;">OFFLINE MODE / 离线预览</div>';
+
+            const loadOffline = () => {
+                console.log("CORS/Network blocked. Switching to Offline Mode.");
+                container.innerHTML = '<div style="font-size:0.7rem; color:#64748b; margin-bottom:10px; text-align:center; opacity:0.6;">OFFLINE MODE / 离线预览</div>';
                 cachedBlogData = MOCK_DATA;
                 renderList(MOCK_DATA.map(m => ({ title: m.title, pubDate: m.date, description: m.desc, link: '#' })), container);
+            };
+
+            try {
+                // Strategy 1: Try rss2json (Primary Proxy)
+                let res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        cachedBlogData = data.items;
+                        renderList(data.items, container);
+                        return; // Success
+                    }
+                }
+                throw new Error("Primary proxy failed");
+
+            } catch (e) {
+                // Fallback to Offline Mode immediately if proxy fails (safest for static site)
+                loadOffline();
             }
         }
 
@@ -521,6 +537,7 @@
                 container.appendChild(link);
             });
         }
+        
         window.addEventListener('load', () => fetchBlog());
     </script>
 </body>
