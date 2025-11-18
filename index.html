@@ -46,7 +46,7 @@
         /* === Core Styles === */
         :root {
             --bg-color: #eef2f5;
-            /* [FIX] 保持 0.6 以维持通透感 */
+            /* 保持通透感 */
             --card-bg: rgba(255, 255, 255, 0.6); 
             --text-main: #0f172a;
             --text-sub: #334155;
@@ -158,22 +158,28 @@
             overflow: hidden;
             transition: transform 0.1s ease-out; 
             transform-style: preserve-3d;
-            max-height: 90vh;
+            /* [FIX] 强制固定高度 */
+            height: 580px;
         }
-        @media (max-width: 768px) { .card { flex-direction: column; max-height: none; } }
+        /* 移动端取消固定高度 */
+        @media (max-width: 768px) { .card { flex-direction: column; height: auto; max-height: none; } }
         
         .col-left { 
             flex: 0 0 40%; 
             position: relative; 
             border-right: 1px solid rgba(255,255,255,0.2);
-            display: flex; flex-direction: column; height: auto;
+            display: flex; flex-direction: column; 
+            /* 确保左侧也是撑满的 */
+            height: 100%;
         }
-        @media (max-width: 768px) { .col-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); flex: auto; } }
+        @media (max-width: 768px) { .col-left { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.2); flex: auto; height: auto; } }
         
         .col-right { 
             flex: 1; padding: 30px; display: flex; flex-direction: column; 
             background: rgba(255,255,255,0.1); 
-            height: auto; min-height: 0;
+            /* 右侧高度撑满，内容溢出滚动 */
+            height: 100%;
+            min-height: 0;
         }
         @media (max-width: 768px) { .col-right { height: auto; min-height: auto; } }
 
@@ -429,7 +435,8 @@
         const card = document.getElementById('card-el');
         if (window.matchMedia("(min-width: 1024px)").matches) {
             document.addEventListener('mousemove', (e) => {
-                const x = (window.innerWidth / 2 - e.pageX) / 60;
+                // [FIX] 反转倾斜逻辑：鼠标在左，x为负，rotateY为负（左侧后退）
+                const x = (e.pageX - window.innerWidth / 2) / 60; 
                 const y = (window.innerHeight / 2 - e.pageY) / 60;
                 card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
             });
