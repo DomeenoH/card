@@ -60,14 +60,35 @@
             transform: translateZ(30px);
         }
 
-        /* 3. 头像: 
+        #background--image {
+            will-change: transform;
+            transition: transform 240ms ease;
+        }
+
+        /* 3. 头像:
               - translateX(-50%)  -> (替代 -translate-x-1/2) 实现水平居中
               - translateZ(70px)   -> 把它在 header(30px) 的基础上再推出 40px, 总共 70px
         */
         .card .avatar {
             /* 关键: 结合 2D 布局 (居中) 和 3D 突出 */
-            transform: translateX(-50%) translateZ(110px) scale(1.08);
-            filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.28));
+            transform: translateX(-50%) translateZ(140px) scale(1.16);
+            filter: drop-shadow(0 18px 38px rgba(0, 0, 0, 0.32));
+            transform-style: preserve-3d;
+        }
+
+        .card .avatar::after {
+            content: '';
+            position: absolute;
+            inset: -10px;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.82), rgba(59, 130, 246, 0.25));
+            transform: translateZ(-6px);
+            filter: blur(12px);
+            opacity: 0.9;
+        }
+
+        .card .avatar img {
+            transform: translateZ(8px);
         }
 
 
@@ -165,6 +186,29 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
             line-height: 1.6;
+        }
+
+        /* 半透明圆点鼠标光标 */
+        .cursor-dot {
+            position: fixed;
+            z-index: 80;
+            width: 22px;
+            height: 22px;
+            margin-left: -11px;
+            margin-top: -11px;
+            border-radius: 9999px;
+            pointer-events: none;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(59, 130, 246, 0.35));
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.28);
+            mix-blend-mode: screen;
+            opacity: 0;
+            transition: opacity 200ms ease, transform 240ms ease;
+            transform: translate3d(0, 0, 0);
+            backdrop-filter: blur(4px);
+        }
+
+        .cursor-dot.visible {
+            opacity: 0.75;
         }
 
         /* 桌面端方形布局：双列卡片 */
@@ -286,7 +330,7 @@
                         <img src="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif"
                              srcset="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif 2x"
                              alt="多米诺的头像"
-                             class="w-28 h-28 rounded-full border-4 border-white shadow-2xl" />
+                             class="w-32 h-32 rounded-full border-4 border-white shadow-2xl" />
                     </figure>
                 </header>
 
@@ -350,16 +394,13 @@
 
                 <div id="post-preview" class="post-preview hidden"></div>
 
-                <!-- 
+                <div id="cursor-dot" class="cursor-dot hidden md:block"></div>
+
+                <!--
                   社交链接
                   - [3D 修正] 移除了 transform 类
                 -->
-                <footer class="social-links flex flex-wrap justify-center gap-4 p-6 border-t border-gray-200">
-                    
-                    <a href="https://blog.dominoh.com" target="_blank" class="blog flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
-                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-box"></use></svg>
-                        <span class="mt-1 text-xs font-medium">博客</span>
-                    </a>
+                <footer class="social-links flex flex-wrap justify-between lg:justify-end gap-4 p-6 border-t border-gray-200 bg-white/60">
 
                     <a href="https://space.bilibili.com/3596837" target="_blank" class="tv flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
                         <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-tv"></use></svg>
@@ -374,6 +415,11 @@
                     <a href="https://github.com/DomeenoH" target="_blank" class="github flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20">
                         <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-github"></use></svg>
                         <span class="mt-1 text-xs font-medium">GitHub</span>
+                    </a>
+
+                    <a href="https://blog.dominoh.com" target="_blank" class="blog flex flex-col items-center text-gray-600 hover:text-blue-600 transition-colors duration-300 w-20 lg:ml-6">
+                        <svg class="icon w-6 h-6" fill="currentColor"><use xlink:href="#icon-box"></use></svg>
+                        <span class="mt-1 text-xs font-medium">博客</span>
                     </a>
 
                 </footer>
@@ -435,6 +481,9 @@
     <!-- 3. RSS 加载与浮窗预览 -->
     <script>
         const previewBox = document.getElementById('post-preview');
+        const cursorDot = document.getElementById('cursor-dot');
+        const avatarEl = document.querySelector('.avatar');
+        const bgImage = document.getElementById('background--image');
         let hidePreviewTimer;
 
         const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -464,23 +513,38 @@
         function positionPreview(card, event) {
             if (!previewBox) return;
 
-            const padding = 16;
+            const padding = 18;
+            const offset = 20;
             const rect = card.getBoundingClientRect();
             const boxRect = previewBox.getBoundingClientRect();
             const boxWidth = boxRect.width || 260;
             const boxHeight = boxRect.height || 200;
 
-            let left = event?.clientX ?? rect.left + rect.width / 2;
+            let left = (event?.clientX ?? (rect.left + rect.width / 2)) + offset;
+            if (left + boxWidth / 2 + padding > window.innerWidth) {
+                left = (event?.clientX ?? rect.right) - offset - boxWidth / 2;
+            }
             left = clamp(left, padding + boxWidth / 2, window.innerWidth - padding - boxWidth / 2);
 
-            let top = rect.bottom + 12;
+            let top = (event?.clientY ?? rect.top) + offset;
             if (top + boxHeight + padding > window.innerHeight) {
-                top = rect.top - boxHeight - 12;
+                top = (event?.clientY ?? rect.bottom) - offset - boxHeight;
             }
             top = clamp(top, padding, window.innerHeight - padding - boxHeight);
 
             previewBox.style.top = `${top}px`;
             previewBox.style.left = `${left}px`;
+        }
+
+        // 柔和半透明鼠标光标
+        let cursorX = 0, cursorY = 0, renderX = 0, renderY = 0;
+        function animateCursor() {
+            renderX += (cursorX - renderX) * 0.15;
+            renderY += (cursorY - renderY) * 0.15;
+            if (cursorDot) {
+                cursorDot.style.transform = `translate3d(${renderX}px, ${renderY}px, 0)`;
+            }
+            requestAnimationFrame(animateCursor);
         }
 
         async function fetchLatestPost() {
@@ -620,31 +684,61 @@
         const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
         if (!reduceMotion && !isMobile) {
-            const maxTilt = 8;
+            const maxTilt = 5;
 
             body.addEventListener('mousemove', (e) => {
-                // "跟随" 逻辑 (Y轴, 左右倾斜)
-                const rawX = (e.pageX - window.innerWidth / 2) / 50;
+                cursorX = e.clientX;
+                cursorY = e.clientY;
+                if (cursorDot && !cursorDot.classList.contains('visible')) cursorDot.classList.add('visible');
 
-                // "排斥" 逻辑 (X轴, 上下倾斜)
-                const rawY = (window.innerHeight / 2 - e.pageY) / 50;
+                const rawX = (e.pageX - window.innerWidth / 2) / 60;
+                const rawY = (window.innerHeight / 2 - e.pageY) / 60;
 
                 const xAxis = clamp(rawX, -maxTilt, maxTilt);
                 const yAxis = clamp(rawY, -maxTilt, maxTilt);
 
                 card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+
+                const parallaxX = (e.pageX / window.innerWidth - 0.5);
+                const parallaxY = (e.pageY / window.innerHeight - 0.5);
+
+                if (avatarEl) {
+                    avatarEl.style.transform = `translateX(-50%) translateZ(140px) scale(1.16) translate3d(${parallaxX * 26}px, ${-parallaxY * 26}px, 0)`;
+                }
+
+                if (bgImage) {
+                    bgImage.style.transform = `translate3d(${parallaxX * 14}px, ${parallaxY * 12}px, 0)`;
+                }
             });
 
             body.addEventListener('mouseenter', () => {
-                card.style.transition = 'none'; // 鼠标进入时移除过渡
+                card.style.transition = 'none';
             });
 
             body.addEventListener('mouseleave', () => {
-                card.style.transition = 'all 0.5s ease'; // 恢复过渡效果
-                card.style.transform = 'rotateY(0deg) rotateX(0deg)'; // 恢复原位
+                card.style.transition = 'all 0.45s ease';
+                card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+
+                if (avatarEl) {
+                    avatarEl.style.transform = 'translateX(-50%) translateZ(140px) scale(1.16)';
+                }
+
+                if (bgImage) {
+                    bgImage.style.transform = 'translate3d(0, 0, 0)';
+                }
+
+                if (cursorDot) {
+                    cursorDot.classList.remove('visible');
+                }
             });
+
+            if (cursorDot) {
+                cursorDot.classList.remove('hidden');
+                animateCursor();
+            }
         } else if (card) {
             card.style.transform = 'none';
+            if (cursorDot) cursorDot.style.display = 'none';
         }
     </script>
 
