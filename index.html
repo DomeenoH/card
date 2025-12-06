@@ -105,41 +105,40 @@
             border-radius: inherit;
         }
 
-        /* iPadOS Cursor */
+        /* iPadOS Cursor - small dot that triggers element highlighting */
         #cursor-dot {
             position: fixed;
             top: 0;
             left: 0;
             width: 20px;
             height: 20px;
-            background-color: rgba(120, 120, 128, 0.3);
+            background: rgba(100, 100, 110, 0.4);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
-            z-index: 9998;
+            z-index: 9999;
             transition:
-                width 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                height 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                border-radius 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-                background-color 0.15s ease-out,
-                opacity 0.15s ease-out;
+                width 0.15s cubic-bezier(0.2, 0, 0, 1),
+                height 0.15s cubic-bezier(0.2, 0, 0, 1),
+                background 0.1s ease-out,
+                opacity 0.1s ease-out;
             opacity: 0;
-            mix-blend-mode: normal;
+            mix-blend-mode: multiply;
         }
 
         #cursor-dot.visible {
             opacity: 1;
         }
 
-        /* iPadOS hover: morphs into subtle pill highlight behind element */
+        /* Cursor shrinks and fades when hovering interactive elements */
         #cursor-dot.hover {
-            background-color: rgba(120, 120, 128, 0.12);
-            border-radius: 8px;
+            width: 8px;
+            height: 8px;
+            background: rgba(100, 100, 110, 0.3);
         }
 
         #cursor-dot.clicking {
-            transform: translate(-50%, -50%) scale(0.92);
-            background-color: rgba(120, 120, 128, 0.25);
+            transform: translate(-50%, -50%) scale(0.6);
         }
 
         @media (max-width: 768px),
@@ -361,6 +360,8 @@
             color: var(--accent);
             text-decoration: none;
             position: relative;
+            z-index: 2;
+            /* Above cursor (z-index: 1) */
             transition: color 0.3s var(--ease-smooth), transform 0.3s var(--ease-spring);
             display: inline-block;
         }
@@ -395,7 +396,17 @@
             font-size: 0.9rem;
             margin-bottom: 15px;
             font-weight: 600;
-            display: inline;
+        }
+
+        /* Force studio link to fit text width only */
+        .link-studio {
+            display: inline !important;
+            width: auto !important;
+        }
+
+        /* Hide underline for inline studio link - prevents width mismatch */
+        .link-studio::after {
+            content: none;
         }
 
         .bio {
@@ -617,8 +628,32 @@
             color: var(--accent);
         }
 
+        /* Universal interactive element hover - like social icons */
+        .interactive {
+            transition:
+                background 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .interactive:hover {
             cursor: none;
+        }
+
+        /* Block elements get white bg highlight - tags, blog items */
+        .tag:hover,
+        .blog-item:hover {
+            background: rgba(255, 255, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Inline links - no bg effect, just use their own hover styles */
+        .link-hover.interactive:hover,
+        .link-studio:hover {
+            background: transparent;
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -779,19 +814,13 @@
             });
         }
 
-        // iPadOS Cursor Manager
+        // iPadOS Cursor Manager - simple follower, elements highlight themselves
         const CursorManager = {
             cursor: document.getElementById('cursor-dot'),
             pos: { x: -100, y: -100 },
             target: { x: -100, y: -100 },
-            size: { w: 20, h: 20 },
-            targetSize: { w: 20, h: 20 },
-            lerp: 0.2,
-            sizeLerp: 0.15,
+            lerp: 0.35,
             visible: false,
-            hoveredElement: null,
-            defaultSize: 20,
-            padding: 8, // Extra padding around element
 
             isTouchDevice() {
                 return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(hover: none)').matches;
@@ -801,50 +830,24 @@
                 if (this.isTouchDevice()) return;
 
                 document.addEventListener('mousemove', (e) => {
+                    this.target.x = e.clientX;
+                    this.target.y = e.clientY;
+
                     if (!this.visible) {
                         this.visible = true;
                         this.cursor.classList.add('visible');
                     }
 
-                    // Find interactive element
-                    const element = e.target.closest('.interactive, a, button, .blog-item, .tag, .social-link');
-
-                    if (element && element !== this.hoveredElement) {
-                        this.hoveredElement = element;
-                        this.cursor.classList.add('hover');
-                    } else if (!element && this.hoveredElement) {
-                        this.hoveredElement = null;
-                        this.cursor.classList.remove('hover');
-                        this.targetSize = { w: this.defaultSize, h: this.defaultSize };
-                    }
-
-                    if (this.hoveredElement) {
-                        // iPadOS: magnetic pull to element center + size morphing
-                        const rect = this.hoveredElement.getBoundingClientRect();
-                        this.target.x = rect.left + rect.width / 2;
-                        this.target.y = rect.top + rect.height / 2;
-                        this.targetSize.w = rect.width + this.padding * 2;
-                        this.targetSize.h = rect.height + this.padding * 2;
-                    } else {
-                        this.target.x = e.clientX;
-                        this.target.y = e.clientY;
-                    }
+                    const isInteractive = e.target.closest('.interactive, a, button, .blog-item, .tag, .social-link');
+                    this.cursor.classList.toggle('hover', !!isInteractive);
                 });
 
-                document.addEventListener('mousedown', () => {
-                    this.cursor.classList.add('clicking');
-                });
-
-                document.addEventListener('mouseup', () => {
-                    this.cursor.classList.remove('clicking');
-                });
-
+                document.addEventListener('mousedown', () => this.cursor.classList.add('clicking'));
+                document.addEventListener('mouseup', () => this.cursor.classList.remove('clicking'));
                 document.addEventListener('mouseleave', () => {
                     this.visible = false;
                     this.cursor.classList.remove('visible', 'hover');
-                    this.hoveredElement = null;
                 });
-
                 document.addEventListener('mouseenter', () => {
                     this.visible = true;
                     this.cursor.classList.add('visible');
@@ -854,19 +857,10 @@
             },
 
             animate() {
-                // Smooth position interpolation
                 this.pos.x += (this.target.x - this.pos.x) * this.lerp;
                 this.pos.y += (this.target.y - this.pos.y) * this.lerp;
-
-                // Smooth size interpolation
-                this.size.w += (this.targetSize.w - this.size.w) * this.sizeLerp;
-                this.size.h += (this.targetSize.h - this.size.h) * this.sizeLerp;
-
                 this.cursor.style.left = this.pos.x + 'px';
                 this.cursor.style.top = this.pos.y + 'px';
-                this.cursor.style.width = this.size.w + 'px';
-                this.cursor.style.height = this.size.h + 'px';
-
                 requestAnimationFrame(() => this.animate());
             }
         };
