@@ -19,7 +19,8 @@
             onerror="window.addEventListener('DOMContentLoaded', function(){ document.getElementById('css-fallback-warning').style.display='block'; })"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest"
+            onerror="console.warn('Lucide Icons failed to load. Icons may not display.');"></script>
 
     <script>
         window.addEventListener('load', function () {
@@ -109,151 +110,49 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 18px;
-            height: 18px;
-            background-color: rgba(255, 255, 255, 0.9);
+            width: 20px;
+            height: 20px;
+            background-color: rgba(120, 120, 128, 0.3);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
-            z-index: 9999;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(2px);
-            transition: width 0.3s var(--ease-smooth), height 0.3s var(--ease-smooth), opacity 0.3s var(--ease-smooth), transform 0.15s var(--ease-smooth);
-            mix-blend-mode: exclusion;
+            z-index: 9998;
+            transition:
+                width 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                height 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                border-radius 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                background-color 0.15s ease-out,
+                opacity 0.15s ease-out;
+            opacity: 0;
+            mix-blend-mode: normal;
         }
 
-        #cursor-dot.absorbed {
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255, 255, 255, 0.2);
-            opacity: 0.5;
+        #cursor-dot.visible {
+            opacity: 1;
         }
 
-        @media (max-width: 768px) {
+        /* iPadOS hover: morphs into subtle pill highlight behind element */
+        #cursor-dot.hover {
+            background-color: rgba(120, 120, 128, 0.12);
+            border-radius: 8px;
+        }
+
+        #cursor-dot.clicking {
+            transform: translate(-50%, -50%) scale(0.92);
+            background-color: rgba(120, 120, 128, 0.25);
+        }
+
+        @media (max-width: 768px),
+        (hover: none) {
             body {
                 cursor: auto;
             }
 
             #cursor-dot {
-                display: none;
+                display: none !important;
             }
         }
 
-        /* AI Chat & FAB */
-        #ai-fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 501;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        #ai-fab:hover {
-            transform: scale(1.1) rotate(10deg);
-        }
-
-        #ai-fab svg {
-            fill: white;
-        }
-
-        #ai-modal {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 320px;
-            height: 400px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            z-index: 500;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(20px);
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'JetBrains Mono', monospace;
-            color: #e2e8f0;
-            overflow: hidden;
-        }
-
-        #ai-modal.open {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .chat-header {
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-        }
-
-        .chat-body {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scrollbar-width: thin;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            line-height: 1.5;
-        }
-
-        .msg-ai {
-            align-self: flex-start;
-            background: rgba(255, 255, 255, 0.1);
-            color: #cbd5e1;
-        }
-
-        .msg-user {
-            align-self: flex-end;
-            background: var(--accent);
-            color: #0f172a;
-            font-weight: 600;
-        }
-
-        .chat-input-area {
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            gap: 8px;
-        }
-
-        #chat-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: white;
-            font-family: inherit;
-        }
-
-        /* === CARD LAYOUT === */
         .card-container {
             width: 100%;
             max-width: 960px;
@@ -262,12 +161,15 @@
         }
 
         .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(40px) saturate(180%);
-            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
             border-radius: 24px;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             flex-direction: row;
             align-items: stretch;
@@ -493,6 +395,7 @@
             font-size: 0.9rem;
             margin-bottom: 15px;
             font-weight: 600;
+            display: inline;
         }
 
         .bio {
@@ -727,39 +630,6 @@
          style="display:none; position:fixed; bottom:10px; right:10px; background:red; color:white; padding:5px; font-size:10px; z-index:10000;">
         Tailwind Failed</div>
 
-    <!-- AI Chat -->
-    <div id="ai-fab"
-         class="interactive"
-         title="Domino's Cat">
-        <i data-lucide="cat"
-           width="28"
-           height="28"></i>
-    </div>
-
-    <div id="ai-modal">
-        <div class="chat-header">
-            <div class="chat-status">
-                <div class="status-dot"></div><span>DOMINO_CAT_NET</span>
-            </div>
-            <button id="close-chat"
-                    class="interactive hover:text-red-400"><i data-lucide="x"
-                   width="14"></i></button>
-        </div>
-        <div class="chat-body"
-             id="chat-messages">
-            <div class="msg msg-ai">喵？System Online.<br>我是 Domino 的猫型数字分身。<br>想知道铲屎官的最新动态吗？🐱</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text"
-                   id="chat-input"
-                   placeholder="Input command..."
-                   autocomplete="off">
-            <button id="send-btn"
-                    class="interactive"><i data-lucide="send"
-                   width="16"></i></button>
-        </div>
-    </div>
-
     <div class="card-container">
         <div class="card bg-noise"
              id="card-el"> <!-- Added bg-noise here -->
@@ -854,8 +724,10 @@
     </div>
 
     <script>
-        const apiKey = "";
-        lucide.createIcons();
+        // Initialize icons with fallback
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
         // Clock
         function updateClock() {
@@ -892,79 +764,114 @@
                 }
             });
 
-        // Cursor
-        const cursorDot = document.getElementById('cursor-dot');
-        if (window.matchMedia("(min-width: 768px)").matches) {
-            let mouseX = -100, mouseY = -100;
-            let cursorX = -100, cursorY = -100;
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX; mouseY = e.clientY;
-                const target = e.target;
-                const isInteractive = target.closest('.interactive') || target.closest('a') || target.closest('button') || target.closest('.blog-item');
-                if (isInteractive) cursorDot.classList.add('absorbed'); else cursorDot.classList.remove('absorbed');
-            });
-            function animateCursor() {
-                cursorX += (mouseX - cursorX) * 0.3; cursorY += (mouseY - cursorY) * 0.3;
-                cursorDot.style.left = cursorX + 'px'; cursorDot.style.top = cursorY + 'px';
-                requestAnimationFrame(animateCursor);
-            }
-            animateCursor();
-        }
-
-        // Tilt
+        // Tilt Effect - uses inline touch detection
+        const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(hover: none)').matches;
         const card = document.getElementById('card-el');
-        if (window.matchMedia("(min-width: 1024px)").matches) {
+        if (!isTouchDevice() && window.matchMedia("(min-width: 1024px)").matches) {
             document.addEventListener('mousemove', (e) => {
-                // [FIX] 反转倾斜逻辑：鼠标在左，x为负，rotateY为负（左侧后退）
-                const x = (e.pageX - window.innerWidth / 2) / 60;
-                const y = (window.innerHeight / 2 - e.pageY) / 60;
+                const x = (e.clientX - window.innerWidth / 2) / 60;
+                const y = (window.innerHeight / 2 - e.clientY) / 60;
                 card.style.transform = `rotateY(${x}deg) rotateX(${y}deg)`;
             });
+
+            document.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            });
         }
 
-        // Chat
-        const fab = document.getElementById('ai-fab');
-        const modal = document.getElementById('ai-modal');
-        const closeBtn = document.getElementById('close-chat');
-        const sendBtn = document.getElementById('send-btn');
-        const chatInput = document.getElementById('chat-input');
-        const msgContainer = document.getElementById('chat-messages');
+        // iPadOS Cursor Manager
+        const CursorManager = {
+            cursor: document.getElementById('cursor-dot'),
+            pos: { x: -100, y: -100 },
+            target: { x: -100, y: -100 },
+            size: { w: 20, h: 20 },
+            targetSize: { w: 20, h: 20 },
+            lerp: 0.2,
+            sizeLerp: 0.15,
+            visible: false,
+            hoveredElement: null,
+            defaultSize: 20,
+            padding: 8, // Extra padding around element
 
-        fab.addEventListener('click', () => { modal.classList.toggle('open'); if (modal.classList.contains('open')) chatInput.focus(); });
-        closeBtn.addEventListener('click', () => modal.classList.remove('open'));
+            isTouchDevice() {
+                return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(hover: none)').matches;
+            },
 
-        function addMessage(text, type) {
-            const div = document.createElement('div');
-            div.className = `msg msg-${type}`;
-            div.innerText = text;
-            msgContainer.appendChild(div);
-            msgContainer.scrollTop = msgContainer.scrollHeight;
-        }
+            init() {
+                if (this.isTouchDevice()) return;
 
-        async function askGemini(query) {
-            addMessage(query, 'user');
-            chatInput.value = '';
-            const loadingId = 'loading-' + Date.now();
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'msg msg-ai'; loadingDiv.id = loadingId; loadingDiv.innerText = "Cat-puting...";
-            msgContainer.appendChild(loadingDiv); msgContainer.scrollTop = msgContainer.scrollHeight;
+                document.addEventListener('mousemove', (e) => {
+                    if (!this.visible) {
+                        this.visible = true;
+                        this.cursor.classList.add('visible');
+                    }
 
-            const context = `Character: Domino's Digital Cat. Tone: Witty, photography & COC expert. Blog Context: ${JSON.stringify(cachedBlogData.slice(0, 3))}`;
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    // Find interactive element
+                    const element = e.target.closest('.interactive, a, button, .blog-item, .tag, .social-link');
 
-                    body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: context + "\nUser: " + query }] }] })
+                    if (element && element !== this.hoveredElement) {
+                        this.hoveredElement = element;
+                        this.cursor.classList.add('hover');
+                    } else if (!element && this.hoveredElement) {
+                        this.hoveredElement = null;
+                        this.cursor.classList.remove('hover');
+                        this.targetSize = { w: this.defaultSize, h: this.defaultSize };
+                    }
+
+                    if (this.hoveredElement) {
+                        // iPadOS: magnetic pull to element center + size morphing
+                        const rect = this.hoveredElement.getBoundingClientRect();
+                        this.target.x = rect.left + rect.width / 2;
+                        this.target.y = rect.top + rect.height / 2;
+                        this.targetSize.w = rect.width + this.padding * 2;
+                        this.targetSize.h = rect.height + this.padding * 2;
+                    } else {
+                        this.target.x = e.clientX;
+                        this.target.y = e.clientY;
+                    }
                 });
-                const data = await response.json();
-                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Meow? No signal.";
-                document.getElementById(loadingId).remove();
-                const aiDiv = document.createElement('div'); aiDiv.className = 'msg msg-ai'; msgContainer.appendChild(aiDiv);
-                let i = 0;
-                function typeWriter() { if (i < aiText.length) { aiDiv.innerHTML += aiText.charAt(i); i++; msgContainer.scrollTop = msgContainer.scrollHeight; setTimeout(typeWriter, 20); } }
-                typeWriter();
-            } catch (e) { document.getElementById(loadingId).innerText = "Error: Catnap time."; }
-        }
+
+                document.addEventListener('mousedown', () => {
+                    this.cursor.classList.add('clicking');
+                });
+
+                document.addEventListener('mouseup', () => {
+                    this.cursor.classList.remove('clicking');
+                });
+
+                document.addEventListener('mouseleave', () => {
+                    this.visible = false;
+                    this.cursor.classList.remove('visible', 'hover');
+                    this.hoveredElement = null;
+                });
+
+                document.addEventListener('mouseenter', () => {
+                    this.visible = true;
+                    this.cursor.classList.add('visible');
+                });
+
+                this.animate();
+            },
+
+            animate() {
+                // Smooth position interpolation
+                this.pos.x += (this.target.x - this.pos.x) * this.lerp;
+                this.pos.y += (this.target.y - this.pos.y) * this.lerp;
+
+                // Smooth size interpolation
+                this.size.w += (this.targetSize.w - this.size.w) * this.sizeLerp;
+                this.size.h += (this.targetSize.h - this.size.h) * this.sizeLerp;
+
+                this.cursor.style.left = this.pos.x + 'px';
+                this.cursor.style.top = this.pos.y + 'px';
+                this.cursor.style.width = this.size.w + 'px';
+                this.cursor.style.height = this.size.h + 'px';
+
+                requestAnimationFrame(() => this.animate());
+            }
+        };
+
+        CursorManager.init();
 
         let cachedBlogData = [];
 
