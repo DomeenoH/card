@@ -9,16 +9,16 @@
 - 🎨 **Glassmorphism** 磨砂玻璃设计风格
 - 🕐 **实时时钟** + IP 地理位置显示
 - 📡 **博客动态流** RSS 自动抓取
-- 🐱 **AI 猫猫助手** (Gemini 驱动)
-- 📱 **响应式设计** 移动端适配
-- ✨ **iPadOS 风格光标** 桌面端特效
+- 🎨 **Pixel-Perfect UI** (Lucide Icons)
+- 📡 **Live RSS Feed** (CORS Proxy Support)
 
 ## Tech Stack
 
 - HTML5 + CSS3 (Vanilla)
-- Tailwind CSS (CDN)
+- Tailwind CSS (Native Migration)
 - Lucide Icons
-- Gemini API (可选)
+- Tailframes UI Engine (Custom)
+- RSS2JSON API (Data Source)
 
 ## Development
 

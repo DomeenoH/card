@@ -14,39 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
           rel="stylesheet">
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"
-            onerror="window.addEventListener('DOMContentLoaded', function(){ document.getElementById('css-fallback-warning').style.display='block'; })"></script>
-
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"
             onerror="console.warn('Lucide Icons failed to load. Icons may not display.');"></script>
 
-    <script>
-        window.addEventListener('load', function () {
-            if (typeof tailwind !== 'undefined') {
-                tailwind.config = {
-                    theme: {
-                        extend: {
-                            fontFamily: {
-                                sans: ['Cairo', 'sans-serif'],
-                                mono: ['JetBrains Mono', 'monospace'],
-                            },
-                            animation: {
-                                'cursor-blink': 'cursor-blink 1.5s step-end infinite',
-                            },
-                            keyframes: {
-                                'cursor-blink': {
-                                    '0%, 100%': { opacity: '1' },
-                                    '50%': { opacity: '0' }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    </script>
+
 
     <style>
         /* === Core Styles === */
@@ -56,6 +28,8 @@
             --card-bg: rgba(255, 255, 255, 0.65);
             --text-main: #0f172a;
             --text-sub: #334155;
+            --text-light: #64748b;
+            --text-muted: #475569;
             --accent: #0ea5e9;
 
             /* New Colors */
@@ -68,6 +42,19 @@
             --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
             --ease-smooth: cubic-bezier(0.19, 1, 0.22, 1);
         }
+
+        @keyframes cursor-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
+        }
+
 
         body {
             margin: 0;
@@ -228,10 +215,11 @@
         .header-image {
             height: 240px;
             position: relative;
-            background-color: #334155;
+            background-color: var(--text-sub);
             overflow: hidden;
             flex-shrink: 0;
         }
+
 
         .header-bg {
             width: 100%;
@@ -574,12 +562,13 @@
         .post-meta {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
-            color: #64748b;
+            color: var(--text-light);
             display: flex;
             justify-content: space-between;
             margin-bottom: 4px;
             font-weight: 600;
         }
+
 
         .post-title {
             font-size: 0.95rem;
@@ -661,9 +650,6 @@
 <body>
 
     <div id="cursor-dot"></div>
-    <div id="css-fallback-warning"
-         style="display:none; position:fixed; bottom:10px; right:10px; background:red; color:white; padding:5px; font-size:10px; z-index:10000;">
-        Tailwind Failed</div>
 
     <div class="card-container">
         <div class="card bg-noise"
@@ -674,10 +660,11 @@
                     <img src="https://b2.domeenoh.eu.org/9b7b1bdd516d919efaedc537fb3a43a9.jpg"
                          alt="Cover"
                          class="header-bg"
+                         loading="lazy"
                          onerror="this.style.display='none'">
                     <div class="clock-container">
                         <span class="clock-label"
-                              id="location-label">LOCATING...</span>
+                              id="location-label">UNKNOWN / SYSTEM</span>
                         <div class="clock-time">
                             <span id="h">00</span><span class="blink-colon">:</span><span id="m">00</span>
                         </div>
@@ -687,10 +674,12 @@
                     <img src="https://b2.domeenoh.eu.org/94ffa647b94bba139974159172af23f7.gif"
                          alt="Domino"
                          class="avatar"
+                         loading="lazy"
                          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23ccc%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>🐱</text></svg>'">
                 </div>
                 <div class="profile-info">
-                    <h1 class="name">多米诺 <span style="font-weight:400; font-size:0.8em; color:#64748b;">Domino</span>
+                    <h1 class="name">多米诺 <span
+                              style="font-weight:400; font-size:0.8em; color:var(--text-light);">Domino</span>
                     </h1>
                     <a href="https://www.weibazhen.com/"
                        target="_blank"
@@ -699,7 +688,8 @@
                         Vlogger・<a href="https://dicer.club/"
                            target="_blank"
                            class="link-hover link-trpg interactive">TRPG 云玩家</a>・铲屎官<br>
-                        <span style="font-family:'JetBrains Mono'; font-size:0.9em; opacity:0.8; color:#475569;">"Après
+                        <span
+                              style="font-family:'JetBrains Mono'; font-size:0.9em; opacity:0.8; color:var(--text-muted);">"Après
                             moi, le déluge"</span>
                     </p>
                     <div class="tags">
@@ -733,7 +723,7 @@
                 <div class="section-header">
                     <div>
                         <div
-                             style="font-size:0.7rem; font-family:'JetBrains Mono'; color:#64748b; letter-spacing:2px; text-transform:uppercase; font-weight:700;">
+                             style="font-size:0.7rem; font-family:'JetBrains Mono'; color:var(--text-light); letter-spacing:2px; text-transform:uppercase; font-weight:700;">
                             Data Stream</div>
                         <h3 class="section-title interactive"><i data-lucide="radio"
                                style="color:var(--accent)"></i> 最近更新</h3>
@@ -747,7 +737,8 @@
                 </div>
                 <div id="blog-list"
                      class="blog-list">
-                    <div style="opacity:0.5; text-align:center; padding:20px;">Loading Frequency...</div>
+                    <div style="opacity:0.5; text-align:center; padding:20px; color:var(--text-light);">Loading
+                        Frequency...</div>
                 </div>
                 <div class="card-footer">
                     <a href="https://blog.dominoh.com"
@@ -775,29 +766,38 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // IP Geolocation (Switched to geojs.io for better stability)
-        fetch('https://get.geojs.io/v1/ip/geo.json')
-            .then(res => res.json())
-            .then(data => {
+        // IP Geolocation (On-demand with user consent)
+        async function requestLocation() {
+            if (!confirm('允许获取您的粗略位置以校准时区吗？')) return;
+
+            const label = document.getElementById('location-label');
+            label.innerText = 'LOCATING...';
+
+            try {
+                const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+                const data = await res.json();
                 if (data.city && data.country_code) {
-                    document.getElementById('location-label').innerText = `${data.city.toUpperCase()}, ${data.country_code}`;
+                    label.innerText = `${data.city.toUpperCase()}, ${data.country_code}`;
                 } else {
                     throw new Error('No city data');
                 }
-            })
-            .catch(err => {
-                // console.warn('IP Geo failed:', err); // Silent fail
+            } catch (err) {
                 try {
                     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                     if (timeZone) {
                         const city = timeZone.split('/')[1].toUpperCase().replace('_', ' ');
                         const region = timeZone.includes('Shanghai') ? 'CN' : 'EARTH';
-                        document.getElementById('location-label').innerText = `${city}, ${region}`;
+                        label.innerText = `${city}, ${region}`;
                     }
                 } catch (e) {
-                    document.getElementById('location-label').innerText = 'SYSTEM, ONLINE';
+                    label.innerText = 'SYSTEM, ONLINE';
                 }
-            });
+            }
+        }
+
+        // Add event listener to clock area
+        document.querySelector('.header-image').style.cursor = 'pointer';
+        document.querySelector('.header-image').addEventListener('click', requestLocation);
 
         // Tilt Effect - uses inline touch detection
         const isTouchDevice = () => 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(hover: none)').matches;
@@ -876,20 +876,37 @@
             { title: "Vlog: Rainy Tokyo Nights", date: "2025/05/01", desc: "Walking through Shinjuku with a 35mm lens. 东京雨夜漫步。" }
         ];
 
+        async function fetchWithTimeout(url, options = {}, timeout = 5000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(url, {
+                ...options,
+                signal: controller.signal
+            });
+            clearTimeout(id);
+            return response;
+        }
+
         async function fetchBlog() {
             const container = document.getElementById('blog-list');
             const feedUrl = 'https://blog.dominoh.com/atom.xml';
 
-            const loadOffline = () => {
-                console.log("CORS/Network blocked. Switching to Offline Mode.");
-                container.innerHTML = '<div style="font-size:0.7rem; color:#64748b; margin-bottom:10px; text-align:center; opacity:0.6;">OFFLINE MODE / 离线预览</div>';
-                cachedBlogData = MOCK_DATA;
-                renderList(MOCK_DATA.map(m => ({ title: m.title, pubDate: m.date, description: m.desc, link: '#' })), container);
+            const loadOffline = (isTimeout = false) => {
+                const msg = isTimeout ? "Signal Lost / 信号丢失" : "Offline / 离线模式";
+                container.innerHTML = '<div style="font-size:0.7rem; color:var(--text-light); margin-bottom:10px; text-align:center; opacity:0.6;">OFFLINE MODE / 离线预览</div>';
+                cachedBlogData = MOCK_DATA.map(m => ({ ...m, isMock: true }));
+                renderList(cachedBlogData.map(m => ({
+                    title: m.title,
+                    pubDate: m.date,
+                    description: m.desc,
+                    link: '#',
+                    isMock: true
+                })), container);
             };
 
             try {
                 // Strategy 1: Try rss2json (Primary Proxy)
-                let res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
+                let res = await fetchWithTimeout(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`);
 
                 if (res.ok) {
                     const data = await res.json();
@@ -902,10 +919,12 @@
                 throw new Error("Primary proxy failed");
 
             } catch (e) {
+                if (e.name === 'AbortError') {
+                    console.warn("Primary proxy timeout");
+                }
                 // Fallback to Strategy 2: Try Cloudflare Workers Proxy
-                console.warn("Primary proxy failed, trying Cloudflare Workers:", e);
                 try {
-                    const cfRes = await fetch(`https://cors-proxy.dominoh.workers.dev/?url=${encodeURIComponent(feedUrl)}`);
+                    const cfRes = await fetchWithTimeout(`https://cors-proxy.dominoh.workers.dev/?url=${encodeURIComponent(feedUrl)}`, {}, 5000);
                     if (cfRes.ok) {
                         const cfData = await cfRes.json();
                         if (cfData.status === 'ok') {
@@ -916,9 +935,7 @@
                     }
                     throw new Error("Cloudflare Workers proxy failed");
                 } catch (cfError) {
-                    console.warn("Cloudflare Workers proxy also failed:", cfError);
-                    // Fallback to Offline Mode if all proxies fail
-                    loadOffline();
+                    loadOffline(cfError.name === 'AbortError' || e.name === 'AbortError');
                 }
             }
         }
@@ -933,7 +950,8 @@
                 const snippet = (tmp.textContent || tmp.innerText || "").slice(0, 60) + "...";
                 const link = document.createElement('a');
                 link.href = post.link; link.target = "_blank"; link.className = "blog-item interactive";
-                link.innerHTML = `<div class="post-meta"><span>LOG_${String(idx + 1).padStart(2, '0')}</span><span>${fmtDate}</span></div><div class="post-title">${post.title}</div><div class="post-snippet">${snippet}</div>`;
+                const mockTag = post.isMock ? `<span style="font-size:0.65rem; background:rgba(100,100,110,0.1); padding:2px 4px; border-radius:3px; margin-right:5px;">ARCHIVE</span>` : "";
+                link.innerHTML = `<div class="post-meta"><span>LOG_${String(idx + 1).padStart(2, '0')}</span><span>${mockTag}${fmtDate}</span></div><div class="post-title">${post.title}</div><div class="post-snippet">${snippet}</div>`;
                 container.appendChild(link);
             });
         }
